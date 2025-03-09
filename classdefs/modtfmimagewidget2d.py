@@ -49,8 +49,6 @@ class TFMImageWidget2D(QWidget):
         self.mpl_canvas.ax.set_ylabel('z [mm]', fontsize=fontsize_labels)
         self.mpl_canvas.ax.xaxis.label.set_color(my_grey)
         self.mpl_canvas.ax.yaxis.label.set_color(my_grey)
-        # self.mpl_canvas.ax.axhline(color=my_grey, linewidth=1)
-        # self.mpl_canvas.ax.axvline(color=my_grey, linewidth=1)
         self.mpl_canvas.ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
         self.mpl_canvas.ax.tick_params(axis='both', which='major', labelsize=8, pad=1)
         self.mpl_canvas.ax.xaxis.set_label_position('top')
@@ -135,5 +133,9 @@ class TFMImageWidget2D(QWidget):
 
     def save_button_clicked(self):
         # Launch an instance of the PrettyPrint dialog:
-        dialog_pretty_print = DialogPrettyPrint(self, self.mpl_canvas.fig, self.tfm_params.image_name_string, 'Intensity (dB)')
+        dialog_pretty_print = DialogPrettyPrint(self, self.mpl_canvas.fig,
+                                                'x (mm)',
+                                                'z (mm)',
+                                                'Intensity (dB)',
+                                                title_string=self.tfm_params.image_name_string)
         dialog_pretty_print.exec()

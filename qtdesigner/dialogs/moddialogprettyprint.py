@@ -9,7 +9,11 @@ from classdefs.modqtmatplotlib import MplCanvasCopycat
 
 
 class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
-    def __init__(self, parent=None, fig=None, title_string=None, colorbar_string=None):
+    def __init__(self, parent=None, fig=None,
+                 x_label_string=None,
+                 y_label_string=None,
+                 colorbar_string=None,
+                 title_string=None):
         super().__init__(parent)
 
         self.setupUi(self)
@@ -59,8 +63,8 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
 
         self.cbar.ax.tick_params(labelsize=small_size)
 
-        self.mpl_canvas.ax.set_xlabel('x (mm)', fontsize=medium_size)
-        self.mpl_canvas.ax.set_ylabel('z (mm)', fontsize=medium_size)
+        self.mpl_canvas.ax.set_xlabel(x_label_string, fontsize=medium_size)
+        self.mpl_canvas.ax.set_ylabel(y_label_string, fontsize=medium_size)
 
         self.mpl_canvas.ax.tick_params(color=line_art_color, labelcolor=line_art_color, labelsize=small_size)
 
