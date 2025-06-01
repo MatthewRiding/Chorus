@@ -5,7 +5,7 @@ from PySide6.QtCore import QThreadPool
 from classdefs.modtfmworker import TFMWorker
 
 from qtdesigner.mainui.UI_chorusmain import Ui_MainWindow
-from qtdesigner.dialogs.moddialogfileimportparamsfmclp import DialogImportFMCLPmat
+from qtdesigner.dialogs.moddialogfileimportparamsfmclp import DialogImportFMCLP
 from qtdesigner.dialogs.moddialogtfmparametersfmclp import DialogTFMParamsFMCLP
 from classdefs.modtfmimageslistmodel import ListModelTFMImages
 from classdefs.modlistedtfmimage import ListedTFMImage
@@ -17,6 +17,7 @@ from functions.modextractpcm import extract_pcm
 from functions.modcalculategenanglematrix import calculate_gen_angle_matrix_deg
 from corevariables.modwavesets import dict_wave_sets
 from corevariables.modmaskbehaviours import dict_mask_behaviours
+from corevariables.modfiletypeloading import dict_loading_functions
 
 
 class ChorusMainWindow(QMainWindow, Ui_MainWindow):
@@ -85,10 +86,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Create actions:
         # Action to open a .mat file:
-        action_open_mat = QAction('.mat FMC linear periodic 2D array format', parent=self)
-        action_open_mat.setStatusTip('Import a .mat file for a FMC from a linear periodic array, stored in 2D array '
-                                     'format.')
-        action_open_mat.triggered.connect(self.open_mat_fmclp_clicked)
+        action_open = QAction('Open FMC...', parent=self)
+        action_open.setStatusTip('Open a full matrix capture file from one of the accepted formats '
+                                 '(.mat, .npy, .txt).')
+        action_open.triggered.connect(self.open_fmclp)
         # Action to toggle the pixel contributions matrix (pcm) viewer window:
         self.action_toggle_pcm_viewer = QAction('Pixel contributions matrix viewer', parent=self)
         self.action_toggle_pcm_viewer.setCheckable(True)
@@ -101,11 +102,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Create menus:
         self.menu_windows = self.menubar.addMenu('Windows')
 
-        # Create sub-menus:
-        self.menu_open = self.menu_file.addMenu('Open')
-
         # Add actions to menus:
-        self.menu_open.addAction(action_open_mat)
+        self.menu_file.addAction(action_open)
         self.menu_windows.addActions([self.action_toggle_pcm_viewer, self.action_toggle_cheops_viewer])
 
         # Create shortcuts:
@@ -216,14 +214,16 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.b_scan_view_widget_iso_gen.blit_manager.blit_all_animated_artists()
         self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
 
-    def open_mat_fmclp_clicked(self):
+    def open_fmclp(self):
         # Ask the user for the file import and display parameters:
-        provided, description, file_path_mat, t_min_us, t_max_us, detrend_tf = self.request_file_import_params()
+        (provided, description, file_path_mat,
+         file_extension, t_min_us, t_max_us, detrend_tf) = self.request_file_import_params()
 
-        # Proceed differently based on the value of 'provided':
         if provided:
-            # The user has provided file import parameters and wishes to continue with the data import:
-            self.fmc_3d = load_fmclp_from_mat_file(file_path_mat)
+            # The user has provided file import parameters and wishes to continue with the data import.
+            # Use a different loading function depending on the format of the file provided:
+            loading_function = dict_loading_functions[file_extension]
+            self.fmc_3d = loading_function(file_path_mat)
 
             # If requested, de-trend the fmc_3d and overwrite:
             if detrend_tf:
@@ -241,7 +241,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def request_file_import_params(self):
         # Open a dialog to request the file import parameters:
-        dialog_file_import_params = DialogImportFMCLPmat(parent=self)
+        dialog_file_import_params = DialogImportFMCLP(parent=self)
         dialog_file_import_params.exec()
         # When the dialog has either been accepted or rejected:
         # Boolean showing whether the user clicked 'accept' or 'cancel':
@@ -249,11 +249,12 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Other parameters:
         description = dialog_file_import_params.description_string
         file_path = dialog_file_import_params.file_path
+        file_extension = dialog_file_import_params.file_extension
         t_min = dialog_file_import_params.t_min_us
         t_max = dialog_file_import_params.t_max_us
         detrend_tf = dialog_file_import_params.checkBox_detrend.isChecked()
 
-        return provided, description, file_path, t_min, t_max, detrend_tf
+        return provided, description, file_path, file_extension, t_min, t_max, detrend_tf
 
     def request_tfm_params(self):
         # Open a dialog to request the TFM parameters:

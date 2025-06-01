@@ -9,6 +9,7 @@ from functions.modcalculatedirectrayanglespixeldegrees import calculate_ray_angl
 from functions.modordergenindicesforcumsum import order_gen_indices_for_cumsum
 from corevariables.modphasorarrowschemes import dict_phasor_schemes
 from corevariables.modsumtypes import dict_sum_types
+from qtdesigner.dialogs.moddialogprettyprint import DialogPrettyPrint
 
 
 class PCMViewer(QWidget, Ui_PCM_viewer):
@@ -25,7 +26,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         # Instance variables:
         self.critical_angle_lines_visible = False
         self.pcm_complex = np.zeros([64, 64])
-        self.pcm_amplitudes = np.zeros([64, 64])
+        self.pcm_amplitudes_mV = np.zeros([64, 64])
         self.c_min_mv = -1
         self.c_max_mv = 1
         self.n_tx = None
@@ -64,6 +65,8 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         self.checkBox_imag.checkStateChanged.connect(self.imag_toggled)
         self.pushButton_re_calc_phasor.pressed.connect(self.plot_phasor_button_clicked)
         self.pushButton_plot_cumsum.pressed.connect(self.update_sum_vs_gen_angle_plot)
+        self.pushButton_print_pcm.pressed.connect(self.print_pcm_pressed)
+        self.pushButton_print_graph.pressed.connect(self.print_graph_pressed)
 
         # Matplotlib events:
         self.sum_vs_mask_angle_widget.mpl_canvas.fig.canvas.mpl_connect('button_press_event',
@@ -94,9 +97,9 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         self.pcm_complex = pcm_complex
 
         if self.checkBox_real.isChecked():
-            self.pcm_amplitudes = np.real(pcm_complex)
+            self.pcm_amplitudes_mV = np.real(pcm_complex) * 1000
         else:
-            self.pcm_amplitudes = np.imag(pcm_complex)
+            self.pcm_amplitudes_mV = np.imag(pcm_complex) * 1000
 
         # Call the current set_pcm_data function:
         self.set_pcm_data_function()
@@ -136,8 +139,8 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         else:
             # Return to normal imshow contrast:
             self.set_pcm_data_function = self.set_data_amplitude
-            self.mpl_widget_pcm.axes_image.set_clim(vmin=self.c_min_mv * 10 ** -3,
-                                                    vmax=self.c_max_mv * 10 ** -3)
+            self.mpl_widget_pcm.axes_image.set_clim(vmin=self.c_min_mv,
+                                                    vmax=self.c_max_mv)
 
         # Call the new function:
         self.set_pcm_data_function()
@@ -147,13 +150,13 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         self.c_min_mv = c_min_mv
         if not self.check_box_sign.isChecked():
             # Update the c limit of the axes image:
-            self.mpl_widget_pcm.axes_image.set_clim(vmin=c_min_mv * 10 ** -3)
+            self.mpl_widget_pcm.axes_image.set_clim(vmin=c_min_mv)
 
     def new_c_max(self, c_max_mv):
         self.c_max_mv = c_max_mv
         if not self.check_box_sign.isChecked():
             # Update the c limit of the axes image:
-            self.mpl_widget_pcm.axes_image.set_clim(vmax=c_max_mv * 10 ** -3)
+            self.mpl_widget_pcm.axes_image.set_clim(vmax=c_max_mv)
 
     def re_draw_pcm_mplcanvas(self):
         self.mpl_widget_pcm.mpl_canvas.draw()
@@ -162,10 +165,10 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         self.mpl_widget_pcm.axes_image.set_extent((0, n_tx-1, n_tx-1, 0))
 
     def set_data_amplitude(self):
-        self.mpl_widget_pcm.axes_image.set_data(self.pcm_amplitudes)
+        self.mpl_widget_pcm.axes_image.set_data(self.pcm_amplitudes_mV)
 
     def set_data_sign(self):
-        self.mpl_widget_pcm.axes_image.set_data(np.sign(self.pcm_amplitudes))
+        self.mpl_widget_pcm.axes_image.set_data(np.sign(self.pcm_amplitudes_mV))
 
     def real_toggled(self):
         if self.checkBox_real.isChecked():
@@ -175,7 +178,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_imag.setChecked(False)
             self.checkBox_imag.blockSignals(False)
             # Use real part:
-            self.pcm_amplitudes = np.real(self.pcm_complex)
+            self.pcm_amplitudes_mV = np.real(self.pcm_complex)
         else:
             # Use imag:
             # Check imag checkbox without emitting signals:
@@ -183,7 +186,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_imag.setChecked(True)
             self.checkBox_imag.blockSignals(False)
             # Use imag part:
-            self.pcm_amplitudes = np.imag(self.pcm_complex)
+            self.pcm_amplitudes_mV = np.imag(self.pcm_complex)
         # Call set data function:
         self.set_pcm_data_function()
         # Re-draw pcm mpl_canvas:
@@ -197,7 +200,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_real.setChecked(False)
             self.checkBox_real.blockSignals(False)
             # Use imag part:
-            self.pcm_amplitudes = np.imag(self.pcm_complex)
+            self.pcm_amplitudes_mV = np.imag(self.pcm_complex)
         else:
             # Use real:
             # Check real checkbox without emitting signals:
@@ -205,7 +208,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_real.setChecked(True)
             self.checkBox_real.blockSignals(False)
             # Use real part:
-            self.pcm_amplitudes = np.real(self.pcm_complex)
+            self.pcm_amplitudes_mV = np.real(self.pcm_complex)
         # Call set data function:
         self.set_pcm_data_function()
         # Re-draw pcm mpl_canvas:
@@ -295,3 +298,23 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         new_mouse_angle = np.clip(old_mouse_angle + increment_degrees, min_angle, max_angle)
         # Move the marker lines:
         self.update_mouse_angle_markers(new_mouse_angle)
+
+    def print_pcm_pressed(self):
+        # Launch an instance of the PrettyPrint dialog:
+        title_string = f'Pixel contributions matrix for pixel at ({self.x_pixel_m * 1000:.2f}, {self.z_pixel_m * 1000:.2f}) mm'
+        dialog_pretty_print = DialogPrettyPrint(self, self.mpl_widget_pcm.mpl_canvas.fig,
+                                                'Generation index',
+                                                'Detection index',
+                                                'Amplitude (mV)',
+                                                title_string=title_string)
+        dialog_pretty_print.exec()
+
+    def print_graph_pressed(self):
+        # Launch an instance of the PrettyPrint dialog:
+        title_string = f'[insert] vs mask angle for pixel at ({self.x_pixel_m * 1000 :.2f}, {self.z_pixel_m * 1000 :.2f}) mm'
+        dialog_pretty_print = DialogPrettyPrint(self, self.sum_vs_mask_angle_widget.mpl_canvas.fig,
+                                                'Mask angle (°)',
+                                                '[Insert]',
+                                                'Amplitude (mV)',
+                                                title_string=title_string)
+        dialog_pretty_print.exec()

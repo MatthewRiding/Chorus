@@ -4,7 +4,7 @@ import numpy as np
 from scipy.ndimage import binary_erosion
 
 
-from functions.delaylawfunctions.moddelaylawfunctions import calculate_delay_law_tl, calculate_delay_law_tt_subcrit
+from functions.delaylawfunctions.moddelaylawfunctions import calculate_delay_law_tl
 from functions.modbuildxgenandxdetmatrices import build_x_gen_and_x_det_matrices_m
 from functions.modcalculatecriticalangle import calculate_critical_angle_radians
 from functions.modfindascanswithclosestdelays import find_a_scans_with_closest_delays
@@ -23,7 +23,7 @@ x_gen_matrix_m, x_det_matrix_m = build_x_gen_and_x_det_matrices_m(n_tx, pitch_mm
 angle_critical_radians = calculate_critical_angle_radians(v_l_mpers, v_t_mpers)
 
 # Calculate delay matrix:
-delay_matrix_s = calculate_delay_law_tt_subcrit(x_pixel_m, z_pixel_m, x_gen_matrix_m, x_det_matrix_m,
+delay_matrix_s = calculate_delay_law_tl(x_pixel_m, z_pixel_m, x_gen_matrix_m, x_det_matrix_m,
                                                 angle_critical_radians, v_l_mpers, v_t_mpers)
 delay_matrix_us = np.ma.getdata(delay_matrix_s) / 10**-6
 # Extract mask:

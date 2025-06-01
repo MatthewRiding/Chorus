@@ -71,16 +71,36 @@ class Ui_dialog_pretty_print(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.label = QLabel(self.scrollAreaWidgetContents)
         self.label.setObjectName(u"label")
+        self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayout.addWidget(self.label)
 
         self.lineEdit_title = QLineEdit(self.scrollAreaWidgetContents)
         self.lineEdit_title.setObjectName(u"lineEdit_title")
+        self.lineEdit_title.setMaximumSize(QSize(110, 16777215))
 
         self.horizontalLayout.addWidget(self.lineEdit_title)
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.horizontalLayout_5.setContentsMargins(-1, 0, -1, -1)
+        self.label_7 = QLabel(self.scrollAreaWidgetContents)
+        self.label_7.setObjectName(u"label_7")
+        self.label_7.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_5.addWidget(self.label_7)
+
+        self.lineEdit_y_label = QLineEdit(self.scrollAreaWidgetContents)
+        self.lineEdit_y_label.setObjectName(u"lineEdit_y_label")
+        self.lineEdit_y_label.setMaximumSize(QSize(110, 16777215))
+
+        self.horizontalLayout_5.addWidget(self.lineEdit_y_label)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -202,6 +222,7 @@ class Ui_dialog_pretty_print(object):
         self.label_2.setText(QCoreApplication.translate("dialog_pretty_print", u"Pretty Print figure :", None))
         self.label_3.setText(QCoreApplication.translate("dialog_pretty_print", u"Parameters :", None))
         self.label.setText(QCoreApplication.translate("dialog_pretty_print", u"Title :", None))
+        self.label_7.setText(QCoreApplication.translate("dialog_pretty_print", u"y label :", None))
         self.label_5.setText(QCoreApplication.translate("dialog_pretty_print", u"Width :", None))
         self.label_6.setText(QCoreApplication.translate("dialog_pretty_print", u"Height :", None))
         self.label_4.setText(QCoreApplication.translate("dialog_pretty_print", u"Save as :", None))

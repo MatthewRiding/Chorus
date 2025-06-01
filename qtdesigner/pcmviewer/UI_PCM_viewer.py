@@ -28,7 +28,7 @@ class Ui_PCM_viewer(object):
     def setupUi(self, PCM_viewer):
         if not PCM_viewer.objectName():
             PCM_viewer.setObjectName(u"PCM_viewer")
-        PCM_viewer.resize(1018, 581)
+        PCM_viewer.resize(1076, 609)
         self.horizontalLayout_2 = QHBoxLayout(PCM_viewer)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.verticalLayout_2 = QVBoxLayout()
@@ -90,6 +90,21 @@ class Ui_PCM_viewer(object):
 
         self.verticalLayout_2.addWidget(self.mpl_widget_pcm)
 
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.horizontalLayout_4.setContentsMargins(-1, 0, -1, -1)
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_3)
+
+        self.pushButton_print_pcm = QPushButton(PCM_viewer)
+        self.pushButton_print_pcm.setObjectName(u"pushButton_print_pcm")
+
+        self.horizontalLayout_4.addWidget(self.pushButton_print_pcm)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+
 
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
 
@@ -144,6 +159,21 @@ class Ui_PCM_viewer(object):
         self.sum_vs_mask_angle_widget.setSizePolicy(sizePolicy)
 
         self.verticalLayout_3.addWidget(self.sum_vs_mask_angle_widget)
+
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.horizontalLayout_5.setContentsMargins(-1, 0, -1, -1)
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_4)
+
+        self.pushButton_print_graph = QPushButton(self.tab_2)
+        self.pushButton_print_graph.setObjectName(u"pushButton_print_graph")
+
+        self.horizontalLayout_5.addWidget(self.pushButton_print_graph)
+
+
+        self.verticalLayout_3.addLayout(self.horizontalLayout_5)
 
         self.tabWidget.addTab(self.tab_2, "")
         self.tab = QWidget()
@@ -201,9 +231,11 @@ class Ui_PCM_viewer(object):
         self.checkBox_imag.setText(QCoreApplication.translate("PCM_viewer", u"Imag", None))
         self.check_box_crit.setText(QCoreApplication.translate("PCM_viewer", u"Critical angle", None))
         self.check_box_sign.setText(QCoreApplication.translate("PCM_viewer", u"Sign +/-", None))
+        self.pushButton_print_pcm.setText(QCoreApplication.translate("PCM_viewer", u"Print...", None))
         self.label.setText(QCoreApplication.translate("PCM_viewer", u"Mask gen angle meaning :", None))
         self.label_2.setText(QCoreApplication.translate("PCM_viewer", u"Sum type :", None))
         self.pushButton_plot_cumsum.setText(QCoreApplication.translate("PCM_viewer", u"Plot", None))
+        self.pushButton_print_graph.setText(QCoreApplication.translate("PCM_viewer", u"Print...", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("PCM_viewer", u"Sum vs mask gen angle", None))
         self.label_phasor_scheme.setText(QCoreApplication.translate("PCM_viewer", u"Phasor scheme :", None))
         self.pushButton_re_calc_phasor.setText(QCoreApplication.translate("PCM_viewer", u"Plot Phasor", None))

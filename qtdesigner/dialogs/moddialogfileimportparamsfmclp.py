@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import QDialog, QFileDialog
 from PySide6.QtGui import QIcon
+import pathlib
 
-from qtdesigner.dialogs.UI_dialog_import_fmclp_mat import Ui_dialog_tfm_parameters_fmclp
+from qtdesigner.dialogs.UI_dialog_import_fmclp import Ui_dialog_tfm_parameters_fmclp
 
 
-class DialogImportFMCLPmat(QDialog, Ui_dialog_tfm_parameters_fmclp):
+class DialogImportFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -14,6 +15,7 @@ class DialogImportFMCLPmat(QDialog, Ui_dialog_tfm_parameters_fmclp):
         self.parent_main_window = parent
         self.description_string = None
         self.file_path = None
+        self.file_extension = None
         self.t_min_us = None
         self.t_max_us = None
 
@@ -25,9 +27,13 @@ class DialogImportFMCLPmat(QDialog, Ui_dialog_tfm_parameters_fmclp):
         self.buttonBox.accepted.connect(self.accept_button_clicked)
 
     def browse_for_file(self):
-        # Open a QFileDialog to get the path to the .mat file:
-        file_path, file_filter = QFileDialog.getOpenFileName(parent=self.parent_main_window, filter='mat files (*.mat)')
-
+        # Open a QFileDialog to get the path to the fmc file:
+        # Permitted formats are: .mat, .npy, and .txt
+        file_path, file_filter = QFileDialog.getOpenFileName(parent=self.parent_main_window,
+                                                             filter='All compatible files (*.mat *.npy *.txt);;'
+                                                                    'mat file (*.mat);;'
+                                                                    'NumPy file (*.npy);;'
+                                                                    'text file (*.txt)')
         # After closure of the file dialog, display the file path in the line edit:
         self.lineEdit_file_path.setText(file_path)
 
@@ -36,5 +42,7 @@ class DialogImportFMCLPmat(QDialog, Ui_dialog_tfm_parameters_fmclp):
         # instance variables:
         self.description_string = self.line_edit_description.text()
         self.file_path = self.lineEdit_file_path.text()
+        # Get the file extension from the path string:
+        self.file_extension = pathlib.Path(self.file_path).suffix
         self.t_min_us = self.doubleSpinBox_time_min_us.value()
         self.t_max_us = self.doubleSpinBox_time_max_us.value()

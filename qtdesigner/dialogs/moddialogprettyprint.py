@@ -40,12 +40,6 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
         self.spinBox_height.setValue(height_default)
         self.new_size_requested()
 
-        # Add colorbar:
-        #divider = make_axes_locatable(self.mpl_canvas.ax)
-        #cax1 = divider.append_axes("right", size="5%", pad=0.2)
-        self.cbar = self.mpl_canvas.fig.colorbar(self.mpl_canvas.axis_image, ax=self.mpl_canvas.ax, label=colorbar_string)
-
-
         # Set pretty parameters:
         line_art_color = 'k'
         self.mpl_canvas.ax.spines[:].set_edgecolor(line_art_color)
@@ -56,13 +50,9 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
         self.mpl_canvas.fig.patch.set_alpha(1)
 
         # Change the font used for the figure:
-        # Plot the image:
         small_size = 8
         medium_size = 10
         bigger_size = 12
-
-        self.cbar.ax.tick_params(labelsize=small_size)
-
         self.mpl_canvas.ax.set_xlabel(x_label_string, fontsize=medium_size)
         self.mpl_canvas.ax.set_ylabel(y_label_string, fontsize=medium_size)
 
@@ -71,16 +61,32 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
         # Add a title to the TFM image plot using the TFM image name:
         _title_string = title_string if title_string else ''
         self.mpl_canvas.ax.set_title(_title_string, fontsize=bigger_size)
+
+        if self.mpl_canvas.axis_image:
+            # Add colorbar:
+            #divider = make_axes_locatable(self.mpl_canvas.ax)
+            #cax1 = divider.append_axes("right", size="5%", pad=0.2)
+            self.cbar = self.mpl_canvas.fig.colorbar(self.mpl_canvas.axis_image, ax=self.mpl_canvas.ax)
+            self.cbar.ax.tick_params(labelsize=small_size)
+            self.cbar.set_label(colorbar_string, size=small_size)
+
+        # Transmit provided strings to lineEdits:
         self.lineEdit_title.setText(_title_string)
+        self.lineEdit_y_label.setText(y_label_string)
 
         # Wire signals to slots:
         self.pushButton_browse.clicked.connect(self.save_as_button_clicked)
         self.spinBox_width.editingFinished.connect(self.new_size_requested)
         self.spinBox_height.editingFinished.connect(self.new_size_requested)
         self.lineEdit_title.textEdited.connect(self.title_changed)
+        self.lineEdit_y_label.textEdited.connect(self.y_label_changed)
 
     def title_changed(self):
         self.mpl_canvas.ax.set_title(self.lineEdit_title.text())
+        self.mpl_canvas.draw()
+
+    def y_label_changed(self):
+        self.mpl_canvas.ax.set_ylabel(self.lineEdit_y_label.text())
         self.mpl_canvas.draw()
 
     def new_size_requested(self):
