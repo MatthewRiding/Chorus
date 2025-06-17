@@ -40,7 +40,7 @@ class TFMGridPreviewWidget(QWidget):
                                                         n_pixels_z_default)
             c_map = 'viridis'
             extent = (-grid_width_x_default_mm/2, grid_width_x_default_mm/2, z_max_default_mm, 0)
-            axes_image = self.mpl_canvas.ax.imshow(checkerboard_array, vmin=0, vmax=1, cmap=c_map,
+            axes_image = self.mpl_canvas.ax.imshow(checkerboard_array, vmin=0, vmax=2, cmap=c_map,
                                                    interpolation='nearest', extent=extent, **dict_kwargs)
             return axes_image
 
@@ -52,7 +52,7 @@ class TFMGridPreviewWidget(QWidget):
             x_elements_mm = np.linspace(0, aperture_mm, self.n_elements, endpoint=True) - (aperture_mm / 2)
             z_elements_mm = np.zeros(self.n_elements)
             line_array_elements, = self.mpl_canvas.ax.plot(x_elements_mm, z_elements_mm, ls='none', marker='s',
-                                                           mec='none', mfc='magenta', markersize=2)
+                                                           mec='none', mfc='magenta', markersize=3, clip_on=False)
             return line_array_elements
 
         self.line_array_elements = default_array_plot()

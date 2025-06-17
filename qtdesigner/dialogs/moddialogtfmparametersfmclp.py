@@ -54,7 +54,7 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
         self.comboBox_mask_angle.currentTextChanged.connect(self.combobox_mask_angle_text_changed)
         self.doubleSpinBox_v_T_ms.editingFinished.connect(self.speed_value_changed)
         self.doubleSpinBox_v_L_ms.editingFinished.connect(self.speed_value_changed)
-        self.doubleSpinBox_pitch_mm.editingFinished.connect(self.grid_preview_widget.update_array_pitch)
+        self.doubleSpinBox_pitch_mm.editingFinished.connect(self.update_array)
         self.doubleSpinBox_grid_size_x_mm.editingFinished.connect(self.update_grid)
         self.doubleSpinBox_grid_size_z_mm.editingFinished.connect(self.update_grid)
         self.spinBox_n_pixels_z.editingFinished.connect(self.update_grid)
@@ -129,3 +129,6 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
         self.grid_preview_widget.update_checkerboard(self.doubleSpinBox_grid_size_x_mm.value(),
                                                      self.doubleSpinBox_grid_size_z_mm.value(),
                                                      self.spinBox_n_pixels_z.value())
+
+    def update_array(self):
+        self.grid_preview_widget.update_array_pitch(self.doubleSpinBox_pitch_mm.value())

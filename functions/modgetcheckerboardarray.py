@@ -7,6 +7,6 @@ def get_checkerboard_array(grid_width_x_mm, grid_height_z_mm, n_pixels_z):
     # Calculate pixel size:
     pixel_size_mm = grid_height_z_mm / n_pixels_z
     n_pixels_x = np.floor_divide(grid_width_x_mm, pixel_size_mm)
-    shape = (n_pixels_z, n_pixels_x)
+    shape = (int(n_pixels_z), int(n_pixels_x))
     checkerboard_array = np.indices(shape).sum(axis=0) % 2
     return checkerboard_array
