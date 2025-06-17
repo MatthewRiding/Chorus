@@ -1,14 +1,15 @@
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
-from qtdesigner.dialogs.UI_dialog_tfm_parameters_fmclp import Ui_dialog_tfm_parameters_fmclp
+from qtdesigner.dialogs.UI_dialog_tfm_parameters_wavesets import Ui_dialog_tfm_parameters_fmclp
 from classdefs.modtfmparams import TFMParams
 from corevariables.modwavesets import dict_wave_sets
 from corevariables.modmaskbehaviours import dict_mask_behaviours
 from corevariables.modpresetmaskangles import dict_mask_angles
+from classdefs.modtfmgridpreviewwidget import TFMGridPreviewWidget
 
 
 class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
-    def __init__(self, parent=None, tfm_params_previous=None):
+    def __init__(self, n_tx, parent=None, tfm_params_previous=None):
         super().__init__(parent)
 
         self.setupUi(self)
@@ -41,11 +42,22 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
         default_preset_angle = self.comboBox_mask_angle.currentText()
         self.combobox_mask_angle_text_changed(default_preset_angle)
 
+        # Add an instance of the TFMGridPreviewWidget to the main horizontal layout:
+        self.grid_preview_widget = TFMGridPreviewWidget(n_tx,
+                                                        self.doubleSpinBox_grid_size_x_mm.value(),
+                                                        self.doubleSpinBox_grid_size_z_mm.value(),
+                                                        self.spinBox_n_pixels_z.value())
+        self.hlayout_main.addWidget(self.grid_preview_widget)
+
         # Wire signals to slots:
         self.buttonBox.accepted.connect(self.accept_button_clicked)
         self.comboBox_mask_angle.currentTextChanged.connect(self.combobox_mask_angle_text_changed)
         self.doubleSpinBox_v_T_ms.editingFinished.connect(self.speed_value_changed)
         self.doubleSpinBox_v_L_ms.editingFinished.connect(self.speed_value_changed)
+        self.doubleSpinBox_pitch_mm.editingFinished.connect(self.grid_preview_widget.update_array_pitch)
+        self.doubleSpinBox_grid_size_x_mm.editingFinished.connect(self.update_grid)
+        self.doubleSpinBox_grid_size_z_mm.editingFinished.connect(self.update_grid)
+        self.spinBox_n_pixels_z.editingFinished.connect(self.update_grid)
 
     def accept_button_clicked(self):
         # The user has submitted TFM parameters and wishes to proceed to TFM.
@@ -112,3 +124,8 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
                                                     v_t_mpers=self.doubleSpinBox_v_T_ms.value())
             # Write the critical angle value to the DoubleSpinBox:
             self.doubleSpinBox_mask_angle.setValue(mask_angle)
+
+    def update_grid(self):
+        self.grid_preview_widget.update_checkerboard(self.doubleSpinBox_grid_size_x_mm.value(),
+                                                     self.doubleSpinBox_grid_size_z_mm.value(),
+                                                     self.spinBox_n_pixels_z.value())
