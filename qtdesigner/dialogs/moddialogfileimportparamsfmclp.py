@@ -2,10 +2,10 @@ from PySide6.QtWidgets import QDialog, QFileDialog
 from PySide6.QtGui import QIcon
 import pathlib
 
-from qtdesigner.dialogs.UI_dialog_import_fmclp import Ui_dialog_tfm_parameters_fmclp
+from qtdesigner.dialogs.UI_dialog_import_fmclp import Ui_dialog_import_fmclp
 
 
-class DialogImportFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
+class DialogImportFMCLP(QDialog, Ui_dialog_import_fmclp):
     def __init__(self, parent=None):
         super().__init__(parent)
 

@@ -67,8 +67,8 @@ class CheopsViewer(QWidget):
             # Create a flat Cheops plane but make it invisible:
             gen_indices_mesh, det_indices_mesh = create_cheops_meshes(self.n_tx)
             default_delay_surface = np.ones((self.n_tx, self.n_tx))
-            self.surf_cheops_pyramid = self.mpl_canvas.ax.plot(gen_indices_mesh, det_indices_mesh,
-                                                               default_delay_surface, visible=False)
+            self.surf_cheops_pyramid = self.mpl_canvas.ax.plot_surface(gen_indices_mesh, det_indices_mesh,
+                                                                       default_delay_surface, visible=False)
         else:
             self.update_cheops_pyramid(delay_matrix_s)
 

@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
-from qtdesigner.dialogs.UI_dialog_tfm_parameters_fmclp import Ui_dialog_tfm_parameters_fmclp
+from qtdesigner.dialogs.UI_dialog_tfm_parameters_wavesets import Ui_dialog_tfm_parameters_fmclp
 from classdefs.modtfmparams import TFMParams
 from corevariables.modwavesets import dict_wave_sets
 from corevariables.modmaskbehaviours import dict_mask_behaviours
