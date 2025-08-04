@@ -34,13 +34,13 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.det_index = 0
         self.time_index = 0
         self.time_us = 0
-        self.n_tx = 64
+        self.n_elements = 64
         self.n_samples = 1000
         self.sampling_period_us = None
         self.t_min_us = -1
         self.t_max_us = 20
-        self.fmc_3d = np.zeros(shape=(self.n_samples, self.n_tx, self.n_tx))
-        self.fmc_3d_displayed = np.zeros(shape=(self.n_samples, self.n_tx, self.n_tx))
+        self.fmc_3d = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
+        self.fmc_3d_displayed = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
         self.c_max_mv = 1
         self.c_min_mv = -1
         self.time_vector_us = None
@@ -49,7 +49,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.pixel_selected = False
         self.pixel_coords_tuple_m = None
         self.delay_matrix_s = None
-        self.tfm_params_previous = None
+        self.tfm_constructor_previous = None
         self.pcm_viewer_widget = None
         self.cheops_viewer_widget = None
 
@@ -258,17 +258,18 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def request_tfm_params(self):
         # Open a dialog to request the TFM parameters:
-        dialog_tfm_params = DialogTFMParamsFMCLP(parent=self, tfm_params_previous=self.tfm_params_previous)
+        dialog_tfm_params = DialogTFMParamsFMCLP(n_elements=self.n_elements, parent=self,
+                                                 tfm_constructor_previous=self.tfm_constructor_previous)
         dialog_tfm_params.exec()
         # When the dialog has either been accepted or rejected:
         # Boolean showing whether the user clicked 'accept' or 'cancel':
         accepted = dialog_tfm_params.result()
         # If accepted, dialog.tfm_params will be a TFMParams object containing all the parameters needed.
         # If rejected, dialog.tfm_params will return 'None'.
-        tfm_params = dialog_tfm_params.tfm_params
+        tfm_constructor = dialog_tfm_params.tfm_constructor
         # Update the 'previous' tfm params for use if the dialog is called again:
-        self.tfm_params_previous = tfm_params
-        return accepted, tfm_params
+        self.tfm_constructor_previous = tfm_constructor
+        return accepted, tfm_constructor
 
     def update_iso_det_plot(self):
         # Update B-scan colormap:
@@ -312,20 +313,20 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def macro_new_fmclp_dataset(self, t_min_us, t_max_us):
         # Update the values inferred from the shape of the fmc A-scan matrix:
-        self.n_samples, self.n_tx, _ = np.shape(self.fmc_3d)
+        self.n_samples, self.n_elements, _ = np.shape(self.fmc_3d)
 
         # Create a new time vector:
         self.create_time_vector(t_min_us, t_max_us)
 
         # Update plot axes based on n_tx:
-        self.b_scan_view_widget_iso_det.update_axes(self.n_tx, t_min_us, t_max_us)
-        self.b_scan_view_widget_iso_gen.update_axes(self.n_tx, t_min_us, t_max_us)
-        self.iso_time_plot_widget.update_axes(self.n_tx)
+        self.b_scan_view_widget_iso_det.update_axes(self.n_elements, t_min_us, t_max_us)
+        self.b_scan_view_widget_iso_gen.update_axes(self.n_elements, t_min_us, t_max_us)
+        self.iso_time_plot_widget.update_axes(self.n_elements)
         if self.pcm_viewer_widget:
-            self.pcm_viewer_widget.update_axes(self.n_tx)
+            self.pcm_viewer_widget.update_axes(self.n_elements)
             self.pcm_viewer_widget.re_draw_mplcanvas()
         if self.cheops_viewer_widget:
-            self.cheops_viewer_widget.update_axes(self.n_tx, t_min_us, t_max_us)
+            self.cheops_viewer_widget.update_axes(self.n_elements, t_min_us, t_max_us)
             self.cheops_viewer_widget.mpl_canvas.draw()
 
         # Update and re-set controls (sliders and spin boxes) for time, gen and det indices:
@@ -367,14 +368,14 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
     def update_slider_limits(self):
         # Update slider limits:
         # Remember, Python is zero-indexed.  The first element is element 0, and the last is element n_tx-1.
-        self.slider_det_index.setMaximum(self.n_tx - 1)
-        self.slider_gen_index.setMaximum(self.n_tx - 1)
+        self.slider_det_index.setMaximum(self.n_elements - 1)
+        self.slider_gen_index.setMaximum(self.n_elements - 1)
         self.slider_time_index.setMaximum(self.n_samples - 1)
 
     def update_gen_and_det_spinbox_limits(self):
         # Python is zero-indexed: gen and det indices go from 0 to (n_tx - 1):
-        self.spinBox_gen_index.setMaximum(self.n_tx - 1)
-        self.spinBox_det_index.setMaximum(self.n_tx - 1)
+        self.spinBox_gen_index.setMaximum(self.n_elements - 1)
+        self.spinBox_det_index.setMaximum(self.n_elements - 1)
 
     def reset_time_gen_and_det_values(self, t_min_us):
         # Set time to the minimum of the new time vector, without emitting signals:
@@ -466,7 +467,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Create a new instance of ListedTFMImage and add it to the list model:
         self.list_model_tfm_images.dict_listed_images[tfm_worker.worker_id] = ListedTFMImage(tfm_worker.worker_id,
-                                                                                             tfm_params, self.n_tx)
+                                                                                             tfm_params, self.n_elements)
 
         # Run the TFM_worker in the threadpool:
         self.threadpool.start(tfm_worker)
@@ -754,7 +755,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             self.pcm_viewer_widget.new_c_min(self.c_min_mv)
             self.pcm_viewer_widget.new_c_max(self.c_max_mv)
             # Set axes extent based on n_tx of loaded data:
-            self.pcm_viewer_widget.update_axes(self.n_tx)
+            self.pcm_viewer_widget.update_axes(self.n_elements)
             # Open the window:
             self.pcm_viewer_widget.show()
 
@@ -771,7 +772,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
                                                        self.pixel_coords_tuple_m[0], self.pixel_coords_tuple_m[1],
                                                        self.selected_tfm_image.angle_critical_radians,
                                                        self.selected_tfm_image.tfm_params.pitch_mm,
-                                                       self.n_tx)
+                                                       self.n_elements)
         # Trigger a re-draw of the pcm viewer mpl canvases:
         self.pcm_viewer_widget.re_draw_pcm_mplcanvas()
 
@@ -783,7 +784,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             self.cheops_viewer_widget = None
         else:
             # The widget is not already open.  Create a new instance & show it:
-            self.cheops_viewer_widget = CheopsViewer(self.n_tx, self.t_min_us, self.t_max_us, self.time_us,
+            self.cheops_viewer_widget = CheopsViewer(self.n_elements, self.t_min_us, self.t_max_us, self.time_us,
                                                      self.delay_matrix_s)
             # Wire signals to slots:
             self.cheops_viewer_widget.cheops_viewer_closed.connect(self.slot_cheops_viewer_closed)

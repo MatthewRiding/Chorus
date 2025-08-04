@@ -6,7 +6,7 @@ from classdefs.modmytoolbar import MyToolBar
 from classdefs.modqtmatplotlib import MplCanvas
 from classdefs.modblitmanager import BlitManager
 from qtdesigner.dialogs.moddialogprettyprint import DialogPrettyPrint
-from classdefs.modtfmparams import TFMParams
+from classdefs.modtfmparams import TFMConstructor
 
 
 class TFMImageWidget2D(QWidget):
@@ -18,21 +18,21 @@ class TFMImageWidget2D(QWidget):
         super(TFMImageWidget2D, self).__init__(*args, **kwargs)
 
         # Define instance variables:
-        self.tfm_params = TFMParams('Placeholder image name',
-                                    None,
-                                    None,
-                                    None,
+        self.tfm_constructor = TFMConstructor('Placeholder image name',
+                                         None,
+                                         None,
+                                         None,
                                     '',
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    None,
-                                    0,
-                                    0,
-                                    None,
-                                    None,
-                                    '')
+                                         None,
+                                         None,
+                                         None,
+                                         None,
+                                         None,
+                                         0,
+                                         0,
+                                         None,
+                                         None,
+                                         '')
 
         # Create an instance of the MplCanvas class:
         self.mpl_canvas = MplCanvas(self, width=5, height=4, dpi=100)
@@ -137,5 +137,5 @@ class TFMImageWidget2D(QWidget):
                                                 'x (mm)',
                                                 'z (mm)',
                                                 'Intensity (dB)',
-                                                title_string=self.tfm_params.image_name_string)
+                                                title_string=self.tfm_constructor.image_name_string)
         dialog_pretty_print.exec()

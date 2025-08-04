@@ -1,18 +1,18 @@
 import numpy as np
 
 
-from functions.modcalculatedistancesdirect import calculate_distances_direct_m
-from functions.xztraveltimefunctions.modldirect import calculate_travel_times_l_direct
-from functions.xztraveltimefunctions.modtdirect import calculate_travel_times_t_direct
-from functions.xztraveltimefunctions.modh import (calculate_travel_times_head_wave_to_pixels_subcrit_masked,
-                                                  calculate_travel_times_head_wave_to_pixels)
+from functions.modcalculatedistancesdirect import calculate_distances_direct_all_pixels_all_elements_m
+from functions.delayfuncstfm.modldirect import calculate_travel_times_l_direct
+from functions.delayfuncstfm.modtdirect import calculate_travel_times_t_direct
+from functions.delayfuncstfm.modh import (calculate_travel_times_head_wave_to_pixels_subcrit_masked,
+                                          calculate_travel_times_head_wave_to_pixels)
 from functions.modcalculatecriticalangle import calculate_critical_angle_radians
 from functions.modcalculatedirectrayanglesradians import calculate_direct_ray_angles_radians
 
 
 def calculate_xz_travel_times_ll(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # L-L requires direct send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Convert distance to time for send and receive:
     travel_times_l_direct = calculate_travel_times_l_direct(distances_direct_m, v_L_mpers)
@@ -23,7 +23,7 @@ def calculate_xz_travel_times_ll(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_
 
 def calculate_xz_travel_times_tt(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # T-T requires direct send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Convert distance to time for send and receive:
     travel_times_t_direct = calculate_travel_times_t_direct(distances_direct_m, v_T_mpers)
@@ -34,7 +34,7 @@ def calculate_xz_travel_times_tt(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_
 
 def calculate_xz_travel_times_lt(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # L-T requires direct send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Convert distance to time for send and receive:
     travel_times_l_direct = calculate_travel_times_l_direct(distances_direct_m, v_L_mpers)
@@ -46,7 +46,7 @@ def calculate_xz_travel_times_lt(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_
 
 def calculate_xz_travel_times_tl(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # T-L requires direct send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Convert distance to time for send and receive:
     travel_times_t_direct = calculate_travel_times_t_direct(distances_direct_m, v_T_mpers)
@@ -58,7 +58,7 @@ def calculate_xz_travel_times_tl(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_
 
 def calculate_xz_travel_times_ht(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # H-T requires head wave send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Times:
     travel_times_h_subcrit_masked = calculate_travel_times_head_wave_to_pixels_subcrit_masked(x_grid_m, z_grid_m, x_elements_m,
@@ -71,7 +71,7 @@ def calculate_xz_travel_times_ht(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_
 
 def calculate_xz_travel_times_hl(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
     # H-L requires head wave send and direct return paths:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
 
     # Times:
     travel_times_h_subcrit_masked = calculate_travel_times_head_wave_to_pixels_subcrit_masked(x_grid_m, z_grid_m, x_elements_m,
@@ -91,7 +91,7 @@ def calculate_xz_travel_times_hybrid_s(x_grid_m, z_grid_m, x_elements_m, c_L_mpe
                                                                   c_S_mpers, c_LSAW_mpers)
 
     # Compute direct ray SV travel time for all pixels:
-    distances_direct_m = calculate_distances_direct_m(x_grid_m, z_grid_m, x_elements_m)
+    distances_direct_m = calculate_distances_direct_all_pixels_all_elements_m(x_grid_m, z_grid_m, x_elements_m)
     travel_times_sv_direct_s = calculate_travel_times_t_direct(distances_direct_m, c_S_mpers)
 
     # Now combine them according to the ray angle threshold:  Pixels below theta_crit get the direct SV travel

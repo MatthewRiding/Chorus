@@ -8,11 +8,11 @@ from functions.modcomputetfm import compute_tfm
 
 
 class TFMWorker(QRunnable):
-    def __init__(self, fmc_3d, tfm_params, time_vector_us):
+    def __init__(self, fmc_3d, tfm_constructor, time_vector_us):
         super(TFMWorker, self).__init__()
 
         self.fmc_3d = fmc_3d
-        self.tfm_params = tfm_params
+        self.tfm_constructor = tfm_constructor
         self.time_vector = time_vector_us
 
         # Generate a unique worker ID for this instance using the Python uuid module:
@@ -28,7 +28,7 @@ class TFMWorker(QRunnable):
         try:
             # Run the generic TFM function, feeding it the specific delay law function that has been selected by the
             # user:
-            image_decibels, fmc_3d_filtered = compute_tfm(self.worker_id, self.fmc_3d, self.tfm_params,
+            image_decibels, fmc_3d_filtered = compute_tfm(self.worker_id, self.fmc_3d, self.tfm_constructor,
                                                           self.time_vector, self.signals.progress)
         except:
             traceback.print_exc()
