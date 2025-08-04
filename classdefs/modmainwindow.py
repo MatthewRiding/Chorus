@@ -11,12 +11,9 @@ from classdefs.modtfmimageslistmodel import ListModelTFMImages
 from classdefs.modlistedtfmimage import ListedTFMImage
 from classdefs.modpcmviewer import PCMViewer
 from classdefs.modcheopsviewer import CheopsViewer
-from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
 from functions.moddetrendfmc3d import detrend_fmc_3d
 from functions.modextractpcm import extract_pcm
-from functions.modcalculategenanglematrix import calculate_gen_angle_matrix_deg
-from corevariables.modwavesets import dict_wave_sets
-from corevariables.modmaskbehaviours import dict_mask_behaviours
+from functions.modcalculateanglematrix import calculate_pixel_ray_angle_matrix_deg
 from corevariables.modfiletypeloading import dict_loading_functions
 
 
@@ -264,8 +261,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # When the dialog has either been accepted or rejected:
         # Boolean showing whether the user clicked 'accept' or 'cancel':
         accepted = dialog_tfm_params.result()
-        # If accepted, dialog.tfm_params will be a TFMParams object containing all the parameters needed.
-        # If rejected, dialog.tfm_params will return 'None'.
+        # If accepted, dialog_tfm_params.tfm_constructor will be a TFMParams object containing all the parameters needed.
+        # If rejected, dialog_tfm_params.tfm_constructor will return 'None'.
         tfm_constructor = dialog_tfm_params.tfm_constructor
         # Update the 'previous' tfm params for use if the dialog is called again:
         self.tfm_constructor_previous = tfm_constructor
@@ -451,14 +448,14 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def add_tfm_button_clicked(self):
         # Open a dialog to request a new set of TFM parameters from the user:
-        accepted, tfm_params = self.request_tfm_params()
+        accepted, tfm_constructor = self.request_tfm_params()
 
         if accepted:
-            self.run_tfm_job(tfm_params)
+            self.run_tfm_job(tfm_constructor)
 
-    def run_tfm_job(self, tfm_params):
+    def run_tfm_job(self, tfm_constructor):
         # When the user submits their new TFM parameters, we need to start a QRunnable to compute the TFM:
-        tfm_worker = TFMWorker(fmc_3d=self.fmc_3d, tfm_params=tfm_params, time_vector_us=self.time_vector_us)
+        tfm_worker = TFMWorker(fmc_3d=self.fmc_3d, tfm_constructor=tfm_constructor, time_vector_us=self.time_vector_us)
 
         # Wire the signals emitted by the parallel operation to slots:
         tfm_worker.signals.progress.connect(self.worker_progress_detected)
@@ -467,7 +464,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Create a new instance of ListedTFMImage and add it to the list model:
         self.list_model_tfm_images.dict_listed_images[tfm_worker.worker_id] = ListedTFMImage(tfm_worker.worker_id,
-                                                                                             tfm_params, self.n_elements)
+                                                                                             tfm_constructor,
+                                                                                             self.n_elements)
 
         # Run the TFM_worker in the threadpool:
         self.threadpool.start(tfm_worker)
@@ -484,10 +482,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def worker_result_detected(self, data_tuple):
         # A worker has transmitted the 'result' signal.  The data_tuple contains two elements:
-        worker_id, image_decibels, fmc_3d_filtered = data_tuple
+        worker_id, image_complex, fmc_3d_filtered = data_tuple
 
-        # Pin the returned image data & filtered FMC to the associated ListenTFMImage instance:
-        self.list_model_tfm_images.dict_listed_images[worker_id].image_decibels = image_decibels
+        # Pin the returned image data & filtered FMC to the associated ListedTFMImage instance:
+        self.list_model_tfm_images.dict_listed_images[worker_id].new_image_complex(image_complex)
         self.list_model_tfm_images.dict_listed_images[worker_id].fmc_3d_filtered = fmc_3d_filtered
 
     def worker_finished_detected(self, worker_id):
@@ -534,8 +532,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Display the image in decibels on the tfm image plot:
         # Update the axis limits:
-        self.tfm_image_widget_2D.update_axes_centred(self.selected_tfm_image.tfm_params.grid_size_x_mm,
-                                                     self.selected_tfm_image.tfm_params.grid_size_z_mm)
+        self.tfm_image_widget_2D.update_axes_centred(self.selected_tfm_image.tfm_constructor.grid_size_x_mm,
+                                                     self.selected_tfm_image.tfm_constructor.grid_size_z_mm)
         # Transmit the cdata:
         self.tfm_image_widget_2D.axes_image.set_data(self.selected_tfm_image.image_decibels)
         # Reset the colormap limits:
@@ -544,7 +542,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.tfm_image_widget_2D.mpl_canvas.draw()
 
         # If the selected TFM image used filtering, display the filtered FMC on the B-scan and iso-time widgets:
-        if self.selected_tfm_image.tfm_params.filter_tf:
+        if self.selected_tfm_image.tfm_constructor.filter_spec:
             self.macro_swap_displayed_fmc(self.selected_tfm_image.fmc_3d_filtered)
             # Enable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(True)
@@ -563,8 +561,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.slider_dB_min.setValue(abs(self.decibel_minimum))
         self.doubleSpinBox_dB_min.setValue(self.decibel_minimum)
 
-        # Transmit the tfm_params for this TFM image to the tfm_image_widget for use in pretty printing:
-        self.tfm_image_widget_2D.tfm_params = self.selected_tfm_image.tfm_params
+        # Transmit the tfm_constructor for this TFM image to the tfm_image_widget for use in pretty printing:
+        self.tfm_image_widget_2D.tfm_constructor = self.selected_tfm_image.tfm_constructor
 
         # Enable the dB min slider and spinbox:
         self.slider_dB_min.setEnabled(True)
@@ -677,36 +675,66 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         if self.selected_tfm_image.complete:
             x_pixel_m, z_pixel_m = xz_coords_m_tuple
             self.pixel_selected = True
-            # Calculate the delay law associated with this pixel:
-            # Which wave set is associated with the current TFM image?
-            wave_set_string = self.selected_tfm_image.tfm_params.wave_set_string
-            # Get the delay law function for this wave set:
-            calculate_delay_law = dict_wave_sets[wave_set_string].delay_law_function
-            # Call the delay law function and return an n_tx by n_tx matrix of delays:
-            self.delay_matrix_s = calculate_delay_law(x_pixel_m, z_pixel_m,
-                                                      self.selected_tfm_image.x_gen_matrix_m,
-                                                      self.selected_tfm_image.x_det_matrix_m,
-                                                      self.selected_tfm_image.angle_critical_radians,
-                                                      self.selected_tfm_image.tfm_params.v_l_mpers,
-                                                      self.selected_tfm_image.tfm_params.v_t_mpers)
-            # Mask delay law or color if polarity flipping:
-            if self.selected_tfm_image.tfm_params.gen_mask_tf:
-                #if self.selected_tfm_image.tfm_params.apply_mask_during_summing:
-                # Apply mask to the delay matrix based on send ray angle:
-                gen_angle_matrix_deg = calculate_gen_angle_matrix_deg(x_pixel_m, z_pixel_m,
-                                                                      self.selected_tfm_image.x_gen_matrix_m)
-                # Use chosen mask behaviour:
-                mask_behaviour = dict_mask_behaviours[self.selected_tfm_image.tfm_params.mask_behaviour_string]
-                numpy_masking_function = mask_behaviour.numpy_masking_function
-                gen_angle_matrix_masked = numpy_masking_function(gen_angle_matrix_deg,
-                                                                 self.selected_tfm_image.tfm_params.mask_angle_deg)
-                self.delay_matrix_s = np.ma.masked_where(np.ma.getmaskarray(gen_angle_matrix_masked),
-                                                         self.delay_matrix_s)
+
+            # Get the send and receive leg travel time calculation functions:
+            wave_type_send = self.selected_tfm_image.tfm_constructor.wave_type_send
+            wave_type_receive = self.selected_tfm_image.tfm_constructor.wave_type_receive
+            calculate_delay_times_single_pixel_all_el_send_s = wave_type_send.func_calculate_delay_times_single_pixel_all_el_s
+            calculate_delay_times_single_pixel_all_el_receive_s = wave_type_receive.func_calculate_delay_times_single_pixel_all_el_s
+
+            # Calculate the send delays for all elements:
+            send_delays_all_el_s = calculate_delay_times_single_pixel_all_el_send_s(x_pixel_m, z_pixel_m,
+                                                                                    self.selected_tfm_image.tfm_constructor)
+            # Calculate the receive delays for all elements:
+            receive_delays_all_el_s = calculate_delay_times_single_pixel_all_el_receive_s(x_pixel_m, z_pixel_m,
+                                                                                          self.selected_tfm_image.tfm_constructor)
+
+            # Use np.meshgrid to repeat the send and receive delay vectors into arrays:
+            send_delays_matrix_s, receive_delays_matrix_s = np.meshgrid(send_delays_all_el_s, receive_delays_all_el_s)
+
+            # Sum the send and receive delay matrices to obtain an n_elements by n_elements matrix of delays:
+            self.delay_matrix_s = send_delays_matrix_s + receive_delays_matrix_s
+
+            # Mask delay law based on gen and det mask_specs:
+            if self.selected_tfm_image.tfm_constructor.mask_spec_gen or self.selected_tfm_image.tfm_constructor.mask_spec_det:
+                # Get gen mask:
+                if self.selected_tfm_image.tfm_constructor.mask_spec_gen:
+                    mask_spec_gen = self.selected_tfm_image.tfm_constructor.mask_spec_gen
+                    # Apply mask to the delay matrix based on send ray angle:
+                    gen_angle_matrix_deg = calculate_pixel_ray_angle_matrix_deg(x_pixel_m, z_pixel_m,
+                                                                                self.selected_tfm_image.x_gen_matrix_m)
+                    # Use the logic of the chosen mask behaviour:
+                    numpy_masking_function_gen = mask_spec_gen.mask_behaviour.numpy_masking_function
+                    gen_angle_matrix_masked = numpy_masking_function_gen(gen_angle_matrix_deg,
+                                                                         mask_spec_gen.mask_angle_deg)
+                    mask_matrix_gen = np.ma.getmask(gen_angle_matrix_masked)
+                else:
+                    mask_matrix_gen = np.ma.nomask
+
+                # Get det mask:
+                if self.selected_tfm_image.tfm_constructor.mask_spec_det:
+                    mask_spec_det = self.selected_tfm_image.tfm_constructor.mask_spec_det
+                    # Apply mask to the delay matrix based on send ray angle:
+                    det_angle_matrix_deg = calculate_pixel_ray_angle_matrix_deg(x_pixel_m, z_pixel_m,
+                                                                                self.selected_tfm_image.x_det_matrix_m)
+                    # Use the logic of the chosen mask behaviour:
+                    numpy_masking_function_det = mask_spec_det.mask_behaviour.numpy_masking_function
+                    det_angle_matrix_masked = numpy_masking_function_det(det_angle_matrix_deg,
+                                                                         mask_spec_det.mask_angle_deg)
+                    mask_matrix_det = np.ma.getmask(det_angle_matrix_masked)
+                else:
+                    mask_matrix_det = np.ma.nomask
+
+                # Combine gen and det masks:
+                mask_gen_and_det = np.ma.mask_or(mask_matrix_gen, mask_matrix_det)
+                # Apply combined mask to delay matrix:
+                self.delay_matrix_s = np.ma.masked_where(mask_gen_and_det, self.delay_matrix_s, copy=False)
 
             # Display the delays on the B-scan widgets:
             self.b_scan_view_widget_iso_det.update_delays(self.delay_matrix_s[self.det_index, :])
             self.b_scan_view_widget_iso_det.make_delays_visible()
             self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
+
             self.b_scan_view_widget_iso_gen.update_delays(self.delay_matrix_s[:, self.gen_index])
             self.b_scan_view_widget_iso_gen.make_delays_visible()
             self.b_scan_view_widget_iso_gen.blit_manager.blit_all_animated_artists()
@@ -771,7 +799,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.pcm_viewer_widget.macro_new_pixel_clicked(pcm,
                                                        self.pixel_coords_tuple_m[0], self.pixel_coords_tuple_m[1],
                                                        self.selected_tfm_image.angle_critical_radians,
-                                                       self.selected_tfm_image.tfm_params.pitch_mm,
+                                                       self.selected_tfm_image.tfm_constructor.pitch_mm,
                                                        self.n_elements)
         # Trigger a re-draw of the pcm viewer mpl canvases:
         self.pcm_viewer_widget.re_draw_pcm_mplcanvas()

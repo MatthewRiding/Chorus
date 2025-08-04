@@ -4,7 +4,7 @@ import sys
 import uuid
 
 from classdefs.modtfmworkersignals import TFMWorkerSignals
-from functions.modcomputetfm import compute_tfm
+from functions.modcomputetfmcomplex import compute_tfm_complex
 
 
 class TFMWorker(QRunnable):
@@ -28,8 +28,8 @@ class TFMWorker(QRunnable):
         try:
             # Run the generic TFM function, feeding it the specific delay law function that has been selected by the
             # user:
-            image_decibels, fmc_3d_filtered = compute_tfm(self.worker_id, self.fmc_3d, self.tfm_constructor,
-                                                          self.time_vector, self.signals.progress)
+            intensity_image_complex, fmc_3d_filtered = compute_tfm_complex(self.worker_id, self.fmc_3d, self.tfm_constructor,
+                                                                  self.time_vector, self.signals.progress)
         except:
             traceback.print_exc()
             # Get the Python error tuple:
@@ -38,7 +38,7 @@ class TFMWorker(QRunnable):
         else:
             # The 'compute_TFM' function ran successfully.
             # Use the 'result' signal to transmit the TFM image back to the main GUI:
-            self.signals.result.emit((self.worker_id, image_decibels, fmc_3d_filtered))
+            self.signals.result.emit((self.worker_id, intensity_image_complex, fmc_3d_filtered))
         finally:
             # After transmitting the result back to the main GUI, emit the 'finished' signal:
             self.signals.finished.emit(self.worker_id)

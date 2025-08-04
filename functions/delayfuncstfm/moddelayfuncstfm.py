@@ -1,44 +1,45 @@
 import numpy as np
 
 
-def calculate_travel_times_direct(tfm_constructor, c_mpers):
+def calculate_travel_times_tfm_direct_s(x_grid_m, z_grid_m, tfm_constructor, c_mpers):
     """Calculate direct straight-ray travel times to/from all pixels in the grid specified by tfm_constructor
     from/to all elements in the array specified by tfm_constructor, at the bulk elastic wave speed c_mpers."""
     # Calculate straight ray distances to all pixels from all elements:
-    distances_direct_all_pixels_all_el_m = tfm_constructor.get_direct_ray_distances_all_pixels_all_el_m()
+    distances_direct_all_pixels_all_el_m = tfm_constructor.get_direct_ray_distances_all_pixels_all_el_m(x_grid_m, z_grid_m)
     # Divide straight-ray-distances by given bulk wave speed:
     travel_times_all_pixels_all_el_s = distances_direct_all_pixels_all_el_m / c_mpers
     return travel_times_all_pixels_all_el_s
 
 
-def calculate_travel_times_l_direct(tfm_constructor):
+def calculate_travel_times_tfm_l_direct_s(x_grid_m, z_grid_m, tfm_constructor):
     """Calculate direct bulk longitudinal wave travel times to/from all pixels in the specified grid,
     and from/to all elements in the specified linear periodic array."""
-    travel_times_l_all_pixels_all_el_s = calculate_travel_times_direct(tfm_constructor,
-                                                                       tfm_constructor.material.c_l_mpers)
+    travel_times_l_all_pixels_all_el_s = calculate_travel_times_tfm_direct_s(x_grid_m, z_grid_m, tfm_constructor,
+                                                                             tfm_constructor.material.c_l_mpers)
     return travel_times_l_all_pixels_all_el_s
 
 
-def calculate_travel_times_t_direct(tfm_constructor):
+def calculate_travel_times_tfm_t_direct_s(x_grid_m, z_grid_m, tfm_constructor):
     """Calculate direct bulk transverse (shear) wave travel times to/from all pixels in the specified grid,
     and from/to all elements in the specified linear periodic array."""
-    travel_times_t_all_pixels_all_el_s = calculate_travel_times_direct(tfm_constructor,
-                                                                       tfm_constructor.material.c_t_mpers)
+    travel_times_t_all_pixels_all_el_s = calculate_travel_times_tfm_direct_s(x_grid_m, z_grid_m, tfm_constructor,
+                                                                             tfm_constructor.material.c_t_mpers)
     return travel_times_t_all_pixels_all_el_s
 
 
-def calculate_travel_times_head_wave_to_pixels(tfm_constructor):
-    """To calculate the time taken for the head wave to reach this pixel, extrapolate from the pixel back up to
-    the surface in a straight line at the critical angle to the surface normal.  The point where this angled
-    line reaches the surface will be called the T-wave birth point.  The lateral distance between the T-wave
-    birth point and the surface point directly above the pixel (x_pixel) will be called 'g_m'.  The delay law
-    is computed by adding the time taken for a leaky surface wave (LSW) to travel from the source point to the
-    T-wave birth point, and then for the T-wave to travel from the birth point to the pixel at the critical angle."""
+def calculate_travel_times_tfm_head_wave_flat_surface_s(x_grid_m, z_grid_m, tfm_constructor):
+    """To calculate the time taken for the head wave to reach this pixel:
+     - Extrapolate from the pixel back up to the flat surface in a straight line at the critical angle to the surface normal.
+     - The point where this angled line reaches the surface will be called the T-wave birth point.
+     - The lateral distance between the T-wave birth point and the surface point directly above the pixel (x_pixel) will be called 'g_m'.
+     - The total travel time is computed by adding the time taken for a leaky surface wave (LSW) to travel from the source point to the
+       T-wave birth point, and then for the bulk T-wave to travel from the birth point to the pixel at the critical angle.
+    This model assumes that the surface of the sample is perfectly flat.  Non-physical travel times are returned for
+    pixels below the critical angle for a given generation point."""
 
     # Get data from tfm_constructor:
     c_t_over_c_l = tfm_constructor.material.c_t_mpers / tfm_constructor.material.c_l_mpers
-    x_grid_m, z_grid_m = tfm_constructor.get_pixel_meshgrid_m()
-    x_elements_m = tfm_constructor.get_x_elements_m()
+    x_elements_m = tfm_constructor.x_elements_m
     c_lsaw_mpers = tfm_constructor.material.c_lsaw_mpers
     c_t_mpers = tfm_constructor.material.c_t_mpers
 
@@ -63,28 +64,42 @@ def calculate_travel_times_head_wave_to_pixels(tfm_constructor):
     return times_head_wave_to_pixel_s
 
 
-def calculate_travel_times_head_wave_to_pixels_subcrit_masked(tfm_constructor):
+def calculate_travel_times_tfm_head_wave_subcrit_masked_s(x_grid_m, z_grid_m, tfm_constructor):
     """Calls 'calculate_travel_times_head_wave_to_pixels', and then applies a numpy mask to the pixels whose direct rays
     are below the critical angle."""
     # Calculate head wave travel times for all pixels:
-    times_head_wave_to_pixel = calculate_travel_times_head_wave_to_pixels(tfm_constructor)
+    times_head_wave_to_pixel_s = calculate_travel_times_tfm_head_wave_flat_surface_s(x_grid_m, z_grid_m, tfm_constructor)
 
     # Apply a mask to these 'send' travel times, masking those pixels where direct send ray angle would be less than
     # the critical angle:
 
     # Calculate send ray angles:
-    angles_direct_rays_radians = calculate_direct_ray_angles_radians(x_grid_m, z_grid_m, x_elements_m)
-    # Calculate critical angle:
-    angle_critical_radians = calculate_critical_angle_radians(
-        v_L_mpers, v_T_mpers)
+    angles_direct_rays_radians = tfm_constructor.get_angles_direct_rays_all_pixels_all_el_radians(x_grid_m, z_grid_m)
+    # Retrieve critical angle:
+    angle_critical_radians = tfm_constructor.material.critical_angle_radians
 
     # Mask the 'send' travel times: Pixels with rays above the critical angle are masked:
-    travel_times_h_subcrit_masked = np.ma.masked_where(angles_direct_rays_radians < angle_critical_radians,
-                                                       times_head_wave_to_pixel)
-    return travel_times_h_subcrit_masked
+    travel_times_h_subcrit_masked_s = np.ma.masked_where(angles_direct_rays_radians < angle_critical_radians,
+                                                         times_head_wave_to_pixel_s)
+    return travel_times_h_subcrit_masked_s
 
 
-dict_send_delay_funcs_tfm = {'L': calculate_travel_times_l_direct,
-                             'T': calculate_travel_times_t_direct,
-                             'H': calculate_travel_times_head_wave_to_pixels,
-                             'Hybrid': func}
+def calculate_travel_times_tfm_shear_hybrid_s(x_grid_m, z_grid_m, tfm_constructor):
+    """This 'hybrid' travel time calculation uses direct shear travel times for pixels below the critical angle, and
+    flat-surface shear head wave travel times for pixels above the critical angle from a given generation point."""
+
+    # Compute the Head wave send travel time for all pixels (sub and supercrit):
+    travel_times_h_s = calculate_travel_times_tfm_head_wave_flat_surface_s(x_grid_m, z_grid_m, tfm_constructor)
+
+    # Compute direct ray SV travel time for all pixels:
+    travel_times_sv_direct_s = calculate_travel_times_tfm_t_direct_s(x_grid_m, z_grid_m, tfm_constructor)
+
+    # Compute direct ray angles and critical angle:
+    angles_direct_rays_rad = tfm_constructor.get_angles_direct_rays_all_pixels_all_el_radians(x_grid_m, z_grid_m)
+    theta_crit_rad = tfm_constructor.material.critical_angle_radians
+
+    # Now combine them according to the ray angle threshold:  Pixels below theta_crit get the direct SV travel
+    # time, whilst pixels above theta crit get the head wave travel time:
+    travel_times_hybrid_send_s = np.where(angles_direct_rays_rad < theta_crit_rad, travel_times_sv_direct_s,
+                                          travel_times_h_s)
+    return travel_times_hybrid_send_s

@@ -6,11 +6,10 @@ from classdefs.modmytoolbar import MyToolBar
 from classdefs.modqtmatplotlib import MplCanvas
 from classdefs.modblitmanager import BlitManager
 from qtdesigner.dialogs.moddialogprettyprint import DialogPrettyPrint
-from classdefs.modtfmparams import TFMConstructor
+from classdefs.modtfmconstructor import TFMConstructor
 
 
 class TFMImageWidget2D(QWidget):
-
     # Define custom signals:
     pixel_clicked = Signal(tuple)
 
@@ -18,21 +17,22 @@ class TFMImageWidget2D(QWidget):
         super(TFMImageWidget2D, self).__init__(*args, **kwargs)
 
         # Define instance variables:
-        self.tfm_constructor = TFMConstructor('Placeholder image name',
-                                         None,
-                                         None,
-                                         None,
-                                    '',
-                                         None,
-                                         None,
-                                         None,
-                                         None,
-                                         None,
-                                         0,
-                                         0,
-                                         None,
-                                         None,
-                                         '')
+        # self.tfm_constructor = TFMConstructor('Placeholder image name',
+        #                                       None,
+        #                                       None,
+        #                                       None,
+        #                                       '',
+        #                                       None,
+        #                                       None,
+        #                                       None,
+        #                                       None,
+        #                                       None,
+        #                                       0,
+        #                                       0,
+        #                                       None,
+        #                                       None,
+        #                                       '')
+        self.tfm_constructor = None
 
         # Create an instance of the MplCanvas class:
         self.mpl_canvas = MplCanvas(self, width=5, height=4, dpi=100)
@@ -115,7 +115,7 @@ class TFMImageWidget2D(QWidget):
 
     def update_axes_centred(self, grid_size_x_mm, grid_size_z_mm):
         # Set axis limits to reflect the size of the chosen TFM grid:
-        self.axes_image.set_extent((-grid_size_x_mm/2, grid_size_x_mm/2, grid_size_z_mm, 0))
+        self.axes_image.set_extent((-grid_size_x_mm / 2, grid_size_x_mm / 2, grid_size_z_mm, 0))
 
     def motion_hover(self, event):
         # MatPlotLib mouse motion event response:

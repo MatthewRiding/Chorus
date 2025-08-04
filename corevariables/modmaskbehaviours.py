@@ -2,15 +2,9 @@ import numpy as np
 
 from classdefs.modmaskbehaviour import MaskBehaviour
 
-dict_mask_behaviours = {'Ignore above': MaskBehaviour(np.ma.masked_greater,
-                                                      True,
-                                                      False),
-                        'Ignore below': MaskBehaviour(np.ma.masked_less,
-                                                      True,
-                                                      False),
-                        'Flip above': MaskBehaviour(np.ma.masked_greater,
-                                                    False,
-                                                    True),
-                        'Flip below': MaskBehaviour(np.ma.masked_less,
-                                                    False,
-                                                    True)}
+
+mask_behaviour_ignore_above = MaskBehaviour('Ignore above', np.ma.masked_greater)
+mask_behaviour_ignore_below = MaskBehaviour('Ignore below', np.ma.masked_less)
+
+dict_mask_behaviours = {mask_behaviour_ignore_above.string_name: mask_behaviour_ignore_above,
+                        mask_behaviour_ignore_below.string_name: mask_behaviour_ignore_below}

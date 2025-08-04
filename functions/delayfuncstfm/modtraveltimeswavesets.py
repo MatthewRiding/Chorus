@@ -7,7 +7,7 @@ from functions.delayfuncstfm.modtdirect import calculate_travel_times_t_direct
 from functions.delayfuncstfm.modh import (calculate_travel_times_head_wave_to_pixels_subcrit_masked,
                                           calculate_travel_times_head_wave_to_pixels)
 from functions.modcalculatecriticalangle import calculate_critical_angle_radians
-from functions.modcalculatedirectrayanglesradians import calculate_direct_ray_angles_radians
+from functions.modcalculatedirectrayangles import calculate_direct_ray_angles_radians
 
 
 def calculate_xz_travel_times_ll(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
