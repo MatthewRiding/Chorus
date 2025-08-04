@@ -5,7 +5,7 @@ import numpy as np
 from qtdesigner.pcmviewer.UI_PCM_viewer import Ui_PCM_viewer
 from functions.modcalculategenindicesatangle import calculate_gen_indices_at_angle
 from functions.modbuildxelements import build_x_elements_m
-from functions.modcalculatedirectrayanglespixeldegrees import calculate_ray_angles_to_pixel_deg
+from functions.modcalculatedirectrayanglespixel import calculate_angles_direct_rays_to_pixel_all_el_deg
 from functions.modordergenindicesforcumsum import order_gen_indices_for_cumsum
 from corevariables.modphasorarrowschemes import dict_phasor_schemes
 from corevariables.modsumtypes import dict_sum_types
@@ -231,7 +231,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
     def update_sum_vs_gen_angle_plot(self):
         # Update the sum vs gen angle plot:
         x_elements_m = build_x_elements_m(self.n_tx, self.pitch_mm)
-        gen_angles = calculate_ray_angles_to_pixel_deg(self.x_pixel_m, self.z_pixel_m, x_elements_m)
+        gen_angles = calculate_angles_direct_rays_to_pixel_all_el_deg(self.x_pixel_m, self.z_pixel_m, x_elements_m)
         # Determine the order in which to sum the columns of the PCM based on the value of the mask angle meaning
         # comboBox:
         mask_angle_meaning = self.comboBox_mask_gen_angle_meaning.currentText()

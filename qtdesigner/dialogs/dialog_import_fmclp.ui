@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialog_tfm_parameters_fmclp</class>
- <widget class="QDialog" name="dialog_tfm_parameters_fmclp">
+ <class>dialog_import_fmclp</class>
+ <widget class="QDialog" name="dialog_import_fmclp">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -276,7 +276,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialog_tfm_parameters_fmclp</receiver>
+   <receiver>dialog_import_fmclp</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -292,7 +292,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialog_tfm_parameters_fmclp</receiver>
+   <receiver>dialog_import_fmclp</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

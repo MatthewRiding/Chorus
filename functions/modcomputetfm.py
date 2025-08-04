@@ -9,7 +9,7 @@ from corevariables.modmaskbehaviours import dict_mask_behaviours
 from functions.modcreatemasks import create_tfm_masks
 
 
-def compute_tfm(worker_id, fmc_3d, tfm_params, time_vector_us, signal_progress):
+def compute_tfm(worker_id, fmc_3d, tfm_constructor, time_vector_us, signal_progress):
     # A generic TFM function that can run for different wave sets:
     signal_progress.emit((worker_id, ' Initialising...'))
 
@@ -20,10 +20,10 @@ def compute_tfm(worker_id, fmc_3d, tfm_params, time_vector_us, signal_progress):
     frequency_sampling_hertz = 1 / (period_sampling_us * 10**-6)
 
     # Retrieve mask & polarity flipping functions if requested:
-    if tfm_params.gen_mask_tf:
+    if tfm_constructor.gen_mask_tf:
         # Some kind of mask has been requested.
         # Get the relevant MaskBehaviour:
-        mask_behaviour = dict_mask_behaviours[tfm_params.mask_behaviour_string]
+        mask_behaviour = dict_mask_behaviours[tfm_constructor.mask_behaviour_string]
         # Get the mask creation, mask application and polarity flipping functions:
         numpy_masking_function = mask_behaviour.numpy_masking_function
         apply_mask_during_summing = mask_behaviour.apply_mask_during_summing
@@ -35,30 +35,30 @@ def compute_tfm(worker_id, fmc_3d, tfm_params, time_vector_us, signal_progress):
         flip_polarity_where_masked = False
 
     # Build pixel co-ordinate mesh grid:
-    x_grid_m, z_grid_m = build_tfm_grid(tfm_params.grid_size_x_mm, tfm_params.grid_size_z_mm, tfm_params.n_pixels_z)
+    x_grid_m, z_grid_m = build_tfm_grid(tfm_constructor.grid_size_x_mm, tfm_constructor.grid_size_z_mm, tfm_constructor.n_pixels_z)
 
     # Build a vector of the element x coordinates using pitch and n_tx:
-    x_elements_m = build_x_elements_m(n_tx, tfm_params.pitch_mm)
+    x_elements_m = build_x_elements_m(n_tx, tfm_constructor.pitch_mm)
 
     # Calculate travel times for send and receive legs:
     # Retrieve the travel time calculation function associated with the chosen wave set:
-    wave_set = dict_wave_sets[tfm_params.wave_set_string]
+    wave_set = dict_wave_sets[tfm_constructor.wave_set_string]
     calculate_travel_times = wave_set.travel_time_function
     # All travel time calculation functions should have the same signature:
     times_send_s, times_receive_s = calculate_travel_times(x_grid_m, z_grid_m, x_elements_m,
-                                                           tfm_params.v_l_mpers, tfm_params.v_t_mpers)
+                                                           tfm_constructor.v_l_mpers, tfm_constructor.v_t_mpers)
     # The arrays 'times_send_s' and 'times_receive_s' will both be 3-dimensional, with one page for each element in
     # the array, and each page the size of the imaging grid.  'times_send_s' may be a numpy MaskedArray.
 
     # If requested, create gen angle masks:
     if numpy_masking_function:
-        gen_angles_rad_masked = create_tfm_masks(x_grid_m, z_grid_m, x_elements_m, tfm_params.mask_angle_deg,
+        gen_angles_rad_masked = create_tfm_masks(x_grid_m, z_grid_m, x_elements_m, tfm_constructor.mask_angle_deg,
                                                  numpy_masking_function)
     else:
         gen_angles_rad_masked = None
 
     # Apply bandpass filter to A-scans if requested:
-    if tfm_params.filter_tf:
+    if tfm_constructor.filter_tf:
         signal_progress.emit((worker_id, ' Filtering...'))
 
         fmc_3d_filtered = filter_fmc3d_butter(fmc_3d, frequency_sampling_hertz, tfm_params.butter_order,

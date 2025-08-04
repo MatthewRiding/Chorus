@@ -5,23 +5,23 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from functions.modcomputetfm import compute_tfm
 from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
 from functions.moddetrendfmc3d import detrend_fmc_3d
-from classdefs.modtfmparams import TFMParams
+from classdefs.modtfmparams import TFMConstructor
 from modfakesignal import FakeSignal
 
 # User inputs:
 mat_file_path = r"C:\Users\mattr\OneDrive - University of Strathclyde\Research project work\LU for fusion\Experimental data\2023_01_11_UKAEA_Stainless_12mm_thick_plate_weld_1D_LIPA_scans\Root_cavity\fmc_root_cavity_compatible.mat"
-tfm_params = TFMParams('Test',
-                       0.1,
-                       5664,
-                       3120,
+tfm_constructor = TFMConstructor('Test',
+                            0.1,
+                            5664,
+                            3120,
                        'H-L',
-                       50,
-                       16,
-                       300,
-                       True,
-                       10,
-                       2.5,
-                       12)
+                            50,
+                            16,
+                            300,
+                            True,
+                            10,
+                            2.5,
+                            12)
 t_min_us = -1
 t_max_us = 19
 
@@ -41,7 +41,7 @@ time_vector_us = np.linspace(t_min_us, t_max_us, n_samples, endpoint=True)
 signal_progress = FakeSignal()
 
 # Call the compute tfm function:
-image_decibels, fmc_3d_filtered = compute_tfm('', fmc_3d_detrend, tfm_params, time_vector_us, signal_progress)
+image_decibels, fmc_3d_filtered = compute_tfm('', fmc_3d_detrend, tfm_constructor, time_vector_us, signal_progress)
 
 # Plot the image:
 SMALL_SIZE = 12
@@ -60,11 +60,11 @@ fig, ax_1 = plt.subplots(figsize=(10, 5))
 axis_image = ax_1.imshow(image_decibels,
                          vmin=-20,
                          vmax=0,
-                         extent=(-tfm_params.grid_size_x_mm / 2,
-                                 tfm_params.grid_size_x_mm / 2,
-                                 tfm_params.grid_size_z_mm, 0))
+                         extent=(-tfm_constructor.grid_size_x_mm / 2,
+                                 tfm_constructor.grid_size_x_mm / 2,
+                                 tfm_constructor.grid_size_z_mm, 0))
 
-ax_1.set_title(f'{tfm_params.wave_set_string}, {tfm_params.band_min_MHz} - {tfm_params.band_max_MHz}MHz',
+ax_1.set_title(f'{tfm_constructor.wave_set_string}, {tfm_constructor.band_min_MHz} - {tfm_constructor.band_max_MHz}MHz',
                fontsize=16)
 ax_1.set_xlabel('$x$ (mm)')
 ax_1.set_ylabel('$z$ (mm)')

@@ -4,7 +4,7 @@ import numpy as np
 from scipy.ndimage import binary_erosion
 
 
-from functions.delaylawfunctions.moddelaylawfunctions import calculate_delay_law_tl
+from functions.delayfuncscheops.moddelaylawfunctions import calculate_delay_law_tl
 from functions.modbuildxgenandxdetmatrices import build_x_gen_and_x_det_matrices_m
 from functions.modcalculatecriticalangle import calculate_critical_angle_radians
 from functions.modfindascanswithclosestdelays import find_a_scans_with_closest_delays
