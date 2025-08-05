@@ -8,11 +8,11 @@ from functions.modgetcheckerboardarray import get_checkerboard_array
 class TFMGridPreviewWidget(QWidget):
     """A class used in the TFM parameters dialog to visualise the TFM grid relative to the linear, periodic array."""
 
-    def __init__(self, n_tx, grid_width_x_default_mm, z_max_default_mm, n_pixels_z_default, *args, **kwargs):
+    def __init__(self, n_elements, grid_width_x_default_mm, z_max_default_mm, n_pixels_z_default, *args, **kwargs):
         super(TFMGridPreviewWidget, self).__init__(*args, **kwargs)
 
         # Define instance variables, with default values:
-        self.n_elements = n_tx
+        self.n_elements = n_elements
 
         # Create an instance of the MplCanvas class:
         self.mpl_canvas = MplCanvas(self, width=5, height=4, dpi=100)

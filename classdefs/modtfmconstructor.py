@@ -42,7 +42,7 @@ class TFMConstructor:
             self.image_name_string = image_name_string
         else:
             # No custom name given.  Build a default name:
-            wave_set_string = wave_type_send.wave_type_string + '-' + wave_type_receive.wave_type_string
+            wave_set_string = wave_type_send.string_name + '-' + wave_type_receive.string_name
             filter_string = f' {filter_spec.band_min_mhz:g}-{filter_spec.band_max_mhz:g}MHz' if filter_spec else ''
             masked_string = ' masked' if mask_spec_gen or mask_spec_det else ''
             # Combine:

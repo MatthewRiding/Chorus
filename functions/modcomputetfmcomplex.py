@@ -63,17 +63,17 @@ def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, sign
                                              (time_vector_us * 10**-6), a_scan_amplitudes_analytic, left=0, right=0)
 
             # Apply gen and det angle masks, if any:
-            if gen_angles_rad_masked or det_angles_rad_masked:
+            if gen_angles_rad_masked is not None or det_angles_rad_masked is not None:
                 # Some masking has been requested:
 
                 # Get gen mask for this gen index:
-                if gen_angles_rad_masked:
+                if gen_angles_rad_masked is not None:
                     mask_gen = np.ma.getmask(gen_angles_rad_masked[gen_index])
                 else:
                     mask_gen = np.ma.nomask
 
                 # Get det mask for this det index:
-                if det_angles_rad_masked:
+                if det_angles_rad_masked is not None:
                     mask_det = np.ma.getmask(det_angles_rad_masked[det_index])
                 else:
                     mask_det = np.ma.nomask

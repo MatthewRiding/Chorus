@@ -59,7 +59,7 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
                                                         self.doubleSpinBox_grid_size_x_mm.value(),
                                                         self.doubleSpinBox_grid_size_z_mm.value(),
                                                         self.spinBox_n_pixels_z.value())
-        self.hlayout_main.addWidget(self.grid_preview_widget)
+        self.h_layout_main.addWidget(self.grid_preview_widget)
 
         # Wire signals to slots:
         self.buttonBox.accepted.connect(self.accept_button_clicked)

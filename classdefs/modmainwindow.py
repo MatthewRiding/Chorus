@@ -798,7 +798,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Update all data in the pcm viewer window:
         self.pcm_viewer_widget.macro_new_pixel_clicked(pcm,
                                                        self.pixel_coords_tuple_m[0], self.pixel_coords_tuple_m[1],
-                                                       self.selected_tfm_image.angle_critical_radians,
+                                                       self.selected_tfm_image.tfm_constructor.material.critical_angle_radians,
                                                        self.selected_tfm_image.tfm_constructor.pitch_mm,
                                                        self.n_elements)
         # Trigger a re-draw of the pcm viewer mpl canvases:

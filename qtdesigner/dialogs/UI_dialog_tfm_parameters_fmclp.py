@@ -28,8 +28,8 @@ class Ui_dialog_tfm_parameters_fmclp(object):
         dialog_tfm_parameters_fmclp.resize(984, 708)
         self.verticalLayout_2 = QVBoxLayout(dialog_tfm_parameters_fmclp)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.h_layout_main = QHBoxLayout()
+        self.h_layout_main.setObjectName(u"h_layout_main")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.label_tfm_parameters = QLabel(dialog_tfm_parameters_fmclp)
@@ -404,7 +404,7 @@ class Ui_dialog_tfm_parameters_fmclp(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.groupBox_mask_gen = QGroupBox(self.scrollAreaWidgetContents_2)
         self.groupBox_mask_gen.setObjectName(u"groupBox_mask_gen")
-        self.groupBox_mask_gen.setEnabled(False)
+        self.groupBox_mask_gen.setEnabled(True)
         sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
         sizePolicy3.setHorizontalStretch(0)
         sizePolicy3.setVerticalStretch(0)
@@ -463,7 +463,7 @@ class Ui_dialog_tfm_parameters_fmclp(object):
 
         self.groupBox_mask_det = QGroupBox(self.scrollAreaWidgetContents_2)
         self.groupBox_mask_det.setObjectName(u"groupBox_mask_det")
-        self.groupBox_mask_det.setEnabled(False)
+        self.groupBox_mask_det.setEnabled(True)
         sizePolicy3.setHeightForWidth(self.groupBox_mask_det.sizePolicy().hasHeightForWidth())
         self.groupBox_mask_det.setSizePolicy(sizePolicy3)
         self.groupBox_mask_det.setMaximumSize(QSize(250, 16777215))
@@ -530,20 +530,10 @@ class Ui_dialog_tfm_parameters_fmclp(object):
         self.verticalLayout.addWidget(self.tabWidget)
 
 
-        self.horizontalLayout.addLayout(self.verticalLayout)
-
-        self.widget_2 = QWidget(dialog_tfm_parameters_fmclp)
-        self.widget_2.setObjectName(u"widget_2")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.widget_2.sizePolicy().hasHeightForWidth())
-        self.widget_2.setSizePolicy(sizePolicy4)
-
-        self.horizontalLayout.addWidget(self.widget_2)
+        self.h_layout_main.addLayout(self.verticalLayout)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.verticalLayout_2.addLayout(self.h_layout_main)
 
         self.buttonBox = QDialogButtonBox(dialog_tfm_parameters_fmclp)
         self.buttonBox.setObjectName(u"buttonBox")
