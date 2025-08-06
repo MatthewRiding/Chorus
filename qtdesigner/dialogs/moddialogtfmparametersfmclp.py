@@ -19,7 +19,7 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
 
         # Pre-define instance variables:
         self.n_elements = n_elements
-        self.tfm_constructor = None
+        self.tfm_constructor = tfm_constructor_previous
 
         # Modify text on accept button:
         self.buttonBox.button(QDialogButtonBox.Ok).setText('Run TFM')
