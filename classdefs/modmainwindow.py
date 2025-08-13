@@ -11,6 +11,7 @@ from classdefs.modtfmimageslistmodel import ListModelTFMImages
 from classdefs.modlistedtfmimage import ListedTFMImage
 from classdefs.modpcmviewer import PCMViewer
 from classdefs.modcheopsviewer import CheopsViewer
+from classdefs.modfullmatrix import FullMatrixLinearPeriodic
 from functions.moddetrendfmc3d import detrend_fmc_3d
 from functions.modextractpcm import extract_pcm
 from functions.modcalculateanglematrix import calculate_pixel_ray_angle_matrix_deg
@@ -31,16 +32,18 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.det_index = 0
         self.time_index = 0
         self.time_us = 0
-        self.n_elements = 64
-        self.n_samples = 1000
-        self.sampling_period_us = None
-        self.t_min_us = -1
-        self.t_max_us = 20
-        self.fmc_3d = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
-        self.fmc_3d_displayed = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
         self.c_max_mv = 1
         self.c_min_mv = -1
-        self.time_vector_us = None
+        self.full_matrix = FullMatrixLinearPeriodic(np.zeros(shape=(1000, 64, 64)),
+                                                    t_min_us=0, t_max_us=10)
+        # self.time_vector_us = None
+        # self.t_min_us = -1
+        # self.t_max_us = 20
+        # self.fmc_3d = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
+        # self.n_elements = 64
+        # self.n_samples = 1000
+        # self.sampling_period_us = None
+        self.fmc_3d_displayed = np.zeros(shape=(self.n_samples, self.n_elements, self.n_elements))
         self.selected_tfm_image = None
         self.decibel_minimum = -10
         self.pixel_selected = False
@@ -171,7 +174,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
     def time_index_changed_by_slider(self, index):
         self.time_index = index
         # Find the associated time:
-        time_us = self.time_vector_us[index]
+        time_us = self.full_matrix.time_vector_us[index]
         # Set the spinBox to match, without firing its signals:
         self.doubleSpinBox_time_us.blockSignals(True)
         self.doubleSpinBox_time_us.setValue(time_us)
@@ -184,7 +187,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # time value by the correct step size, therefore all time values should be valid.
         # Find the index in the time vector associated with the value set in the spinbox:
         # Using floor division (//):
-        index = int((time_us - self.t_min_us) // self.sampling_period_us)
+        index = int((time_us - self.full_matrix.t_min_us) // self.full_matrix.period_sampling_us)
         # Set the value of the slider to match, without firing its valueChanged signal:
         self.slider_time_index.blockSignals(True)
         self.slider_time_index.setValue(index)
@@ -212,29 +215,68 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
 
     def open_fmclp(self):
-        # Ask the user for the file import and display parameters:
+        # Launch a dialog window to ask the user for the file import and display parameters:
         (provided, description, file_path_mat,
          file_extension, t_min_us, t_max_us, detrend_tf) = self.request_file_import_params()
 
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import.
+            # Load the 3d fmc a-scan data (in either volts or displacement in nm).
             # Use a different loading function depending on the format of the file provided:
             loading_function = dict_loading_functions[file_extension]
-            self.fmc_3d = loading_function(file_path_mat)
+            fmc_3d = loading_function(file_path_mat)
+            self.fmc_3d = fmc_3d
 
             # If requested, de-trend the fmc_3d and overwrite:
             if detrend_tf:
                 self.fmc_3d = detrend_fmc_3d(self.fmc_3d)
 
+            # Create a new instance of the FullMatrixLinearPeriodic class:
+            self.full_matrix = FullMatrixLinearPeriodic(fmc_3d, t_min_us, t_max_us)
+
             # Update everything to reflect the new fmclp data set:
-            self.fmc_3d_displayed = self.fmc_3d
+            self.fmc_3d_displayed = self.full_matrix.fmc_3d
             self.macro_new_fmclp_dataset(t_min_us=t_min_us, t_max_us=t_max_us)
+
+
 
             # Enable interactive widgets associated with the b-scan plots and iso-t plot:
             self.enable_interactive_widgets_b_scans_and_iso_t()
 
             # Enable add TFM button:
             self.pushButton_add_tfm_image.setEnabled(True)
+
+    def macro_new_fmclp_dataset(self, t_min_us, t_max_us):
+        # Update everything to reflect the new fmclp data set:
+        self.fmc_3d_displayed = self.full_matrix.fmc_3d
+
+        # Update plot axes based on n_tx:
+        self.b_scan_view_widget_iso_det.update_axes(self.full_matrix.n_elements,
+                                                    self.full_matrix.t_min_us, self.full_matrix.t_max_us)
+        self.b_scan_view_widget_iso_gen.update_axes(self.full_matrix.n_elements,
+                                                    self.full_matrix.t_min_us, self.full_matrix.t_max_us)
+        self.iso_time_plot_widget.update_axes(self.full_matrix.n_elements)
+        if self.pcm_viewer_widget:
+            self.pcm_viewer_widget.update_axes(self.full_matrix.n_elements)
+            self.pcm_viewer_widget.re_draw_mplcanvas()
+        if self.cheops_viewer_widget:
+            self.cheops_viewer_widget.update_axes(self.full_matrix.n_elements,
+                                                  self.full_matrix.t_min_us, self.full_matrix.t_max_us)
+            self.cheops_viewer_widget.mpl_canvas.draw()
+
+        # Update and re-set controls (sliders and spin boxes) for time, gen and det indices:
+        self.update_and_reset_time_gen_det_controls(self.full_matrix.t_min_us, self.full_matrix.t_max_us)
+
+        # Visualise the FMC on the plots:
+        # Use min and max to set colormaps:
+        self.set_colormap_limits_to_data_min_and_max()
+        # Update displayed data:
+        self.update_iso_det_plot()
+        self.b_scan_view_widget_iso_det.mpl_canvas.draw()
+        self.update_iso_gen_plot()
+        self.b_scan_view_widget_iso_gen.mpl_canvas.draw()
+        self.update_iso_time_plot()
+        self.iso_time_plot_widget.mpl_canvas.draw()
 
     def request_file_import_params(self):
         # Open a dialog to request the file import parameters:
@@ -243,7 +285,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # When the dialog has either been accepted or rejected:
         # Boolean showing whether the user clicked 'accept' or 'cancel':
         provided = dialog_file_import_params.result()
-        # Other parameters:
+        # Other returned parameters:
         description = dialog_file_import_params.description_string
         file_path = dialog_file_import_params.file_path
         file_extension = dialog_file_import_params.file_extension
@@ -307,38 +349,6 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Save t_min and t_max for use in time indexing:
         self.t_min_us = t_min_us
         self.t_max_us = t_max_us
-
-    def macro_new_fmclp_dataset(self, t_min_us, t_max_us):
-        # Update the values inferred from the shape of the fmc A-scan matrix:
-        self.n_samples, self.n_elements, _ = np.shape(self.fmc_3d)
-
-        # Create a new time vector:
-        self.create_time_vector(t_min_us, t_max_us)
-
-        # Update plot axes based on n_tx:
-        self.b_scan_view_widget_iso_det.update_axes(self.n_elements, t_min_us, t_max_us)
-        self.b_scan_view_widget_iso_gen.update_axes(self.n_elements, t_min_us, t_max_us)
-        self.iso_time_plot_widget.update_axes(self.n_elements)
-        if self.pcm_viewer_widget:
-            self.pcm_viewer_widget.update_axes(self.n_elements)
-            self.pcm_viewer_widget.re_draw_mplcanvas()
-        if self.cheops_viewer_widget:
-            self.cheops_viewer_widget.update_axes(self.n_elements, t_min_us, t_max_us)
-            self.cheops_viewer_widget.mpl_canvas.draw()
-
-        # Update and re-set controls (sliders and spin boxes) for time, gen and det indices:
-        self.update_and_reset_time_gen_det_controls(t_min_us, t_max_us)
-
-        # Visualise the FMC on the plots:
-        # Use min and max to set colormaps:
-        self.set_colormap_limits_to_data_min_and_max()
-        # Update displayed data:
-        self.update_iso_det_plot()
-        self.b_scan_view_widget_iso_det.mpl_canvas.draw()
-        self.update_iso_gen_plot()
-        self.b_scan_view_widget_iso_gen.mpl_canvas.draw()
-        self.update_iso_time_plot()
-        self.iso_time_plot_widget.mpl_canvas.draw()
 
     def update_and_reset_time_gen_det_controls(self, t_min_us, t_max_us):
         # Update step for time navigation via the doubleSpinBox:

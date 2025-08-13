@@ -61,6 +61,8 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
                                                         self.spinBox_n_pixels_z.value())
         self.h_layout_main.addWidget(self.grid_preview_widget)
 
+        # Set the maximum bandpass filter frequency to be frequency_sampling / 2:
+
         # Wire signals to slots:
         self.buttonBox.accepted.connect(self.accept_button_clicked)
         self.doubleSpinBox_pitch_mm.editingFinished.connect(self.update_array)

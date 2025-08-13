@@ -16,22 +16,6 @@ class TFMImageWidget2D(QWidget):
     def __init__(self, *args, **kwargs):
         super(TFMImageWidget2D, self).__init__(*args, **kwargs)
 
-        # Define instance variables:
-        # self.tfm_constructor = TFMConstructor('Placeholder image name',
-        #                                       None,
-        #                                       None,
-        #                                       None,
-        #                                       '',
-        #                                       None,
-        #                                       None,
-        #                                       None,
-        #                                       None,
-        #                                       None,
-        #                                       0,
-        #                                       0,
-        #                                       None,
-        #                                       None,
-        #                                       '')
         self.tfm_constructor = None
 
         # Create an instance of the MplCanvas class:
