@@ -8,12 +8,16 @@ from functions.modcomputetfmcomplex import compute_tfm_complex
 
 
 class TFMWorker(QRunnable):
-    def __init__(self, fmc_3d, tfm_constructor, time_vector_us):
+    """
+    A worker class inheriting QRunnable to be used in the Qt parallel processing system by 'starting' in a QThreadpool.
+    Method 'run' computes a complex TFM intensity image using the given FullMatrix and TFMConstructor.
+    This class emits 'result' and 'finished' signals after parallel processing.
+    """
+    def __init__(self, full_matrix, tfm_constructor):
         super(TFMWorker, self).__init__()
 
-        self.fmc_3d = fmc_3d
+        self.full_matrix = full_matrix
         self.tfm_constructor = tfm_constructor
-        self.time_vector = time_vector_us
 
         # Generate a unique worker ID for this instance using the Python uuid module:
         # We will save the id as an instance variable in the form of a 32-element hexadecimal string.
@@ -24,12 +28,13 @@ class TFMWorker(QRunnable):
 
     @Slot()
     def run(self):
+        """Calls the function 'compute_tfm_complex', passing the FullMatrix and TFMConstructor attached to this instance."""
         # Retrieve args/kwargs here; and fire processing using them
         try:
             # Run the generic TFM function, feeding it the specific delay law function that has been selected by the
             # user:
-            intensity_image_complex, fmc_3d_filtered = compute_tfm_complex(self.worker_id, self.fmc_3d, self.tfm_constructor,
-                                                                  self.time_vector, self.signals.progress)
+            intensity_image_complex, fmc_3d_filtered = compute_tfm_complex(self.worker_id, self.full_matrix,
+                                                                           self.tfm_constructor, self.signals.progress)
         except:
             traceback.print_exc()
             # Get the Python error tuple:

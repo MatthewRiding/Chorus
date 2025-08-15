@@ -8,8 +8,7 @@ class FilterSpec:
         self.band_min_mhz = band_min_mhz
         self.band_max_mhz = band_max_mhz
 
-    def apply_to_fmc(self, fmc_3d, frequency_sampling_hz):
-        fmc_3d_filtered = filter_fmc3d_butter(fmc_3d, frequency_sampling_hz, self.butter_order,
-                                              band_min_MHz=self.band_min_mhz,
-                                              band_max_MHz=self.band_max_mhz)
+    def apply_to_fmc(self, full_matrix):
+        fmc_3d_filtered = filter_fmc3d_butter(full_matrix.displacements_3d_nm, full_matrix.frequency_sampling_hz, self.butter_order,
+                                              band_min_MHz=self.band_min_mhz, band_max_MHz=self.band_max_mhz)
         return fmc_3d_filtered

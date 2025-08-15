@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def get_decibel_image(image_complex):
+def get_decibel_image_from_complex(image_complex):
     # Convert intensity to root-power decibels by normalising relative to a maximum intensity value.
     # To avoid saturation by SAW crosstalk, ignore pixels in the upper third of the image.
     n_pixels_z = np.shape(image_complex)[0]

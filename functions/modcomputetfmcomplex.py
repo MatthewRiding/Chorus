@@ -2,18 +2,12 @@ import numpy as np
 from scipy.signal import hilbert
 
 
-def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, signal_progress):
+def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress):
     """A generic TFM function that can run for different combinations of send and
     receive wave type."""
     # Emit the progress signal with the string 'Initialising...' to tell the user that
     # the calculation has begun:
     signal_progress.emit((worker_id, ' Initialising...'))
-
-    # Calculate additional parameters from supplied data:
-    n_samples = np.shape(fmc_3d)[0]
-    n_tx = np.shape(fmc_3d)[1]
-    period_sampling_us = time_vector_us[1] - time_vector_us[0]
-    frequency_sampling_hertz = 1 / (period_sampling_us * 10**-6)
 
     # Build 2D arrays storing the imaging grid pixel coordinates:
     x_grid_m, z_grid_m = tfm_constructor.get_pixel_meshgrid_m()
@@ -28,13 +22,13 @@ def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, sign
     if tfm_constructor.filter_spec:
         signal_progress.emit((worker_id, ' Filtering...'))
 
-        fmc_3d_filtered = tfm_constructor.filter_spec.apply_to_fmc(fmc_3d, frequency_sampling_hertz)
+        fmc_3d_filtered = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
 
         # Use the analytic filtered fmc_3d in the subsequent calculations:
         fmc_3d_processed = hilbert(fmc_3d_filtered, axis=0)
     else:
         # No filtering: Use the analytic fmc_3d in the subsequent calculations:
-        fmc_3d_processed = hilbert(fmc_3d, axis=0)
+        fmc_3d_processed = hilbert(full_matrix.displacements_3d_nm, axis=0)
 
         # This function (compute_tfm) returns the filtered fmc_3d back to the caller for display in B-scan & fmc plots.
         # When not filtering, we want to return the 'fmc_3d_filtered' variable as 'None':
@@ -44,6 +38,9 @@ def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, sign
 
     # Pre-allocate an accumulator array for the intensity image:
     intensity_image_complex = np.zeros(np.shape(x_grid_m))
+
+    # Assumption: 'Square' full matrix: n_tx = n_elements.
+    n_tx = full_matrix.n_elements
 
     # Nested loops over detection (slow, outer) and generation (fast, inner) index:
     for det_index in range(n_tx):
@@ -59,8 +56,8 @@ def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, sign
             # Submit the array of total travel times as 1D-interpolation query points for the A-scan associated with
             # this combination of gen_index and det_index:
             a_scan_amplitudes_analytic = fmc_3d_processed[:, det_index, gen_index]
-            sampled_amps_complex = np.interp(delays_for_this_a_scan_s,
-                                             (time_vector_us * 10**-6), a_scan_amplitudes_analytic, left=0, right=0)
+            sampled_amps_complex = np.interp(delays_for_this_a_scan_s, (full_matrix.time_vector_us * 10**-6),
+                                             a_scan_amplitudes_analytic, left=0, right=0)
 
             # Apply gen and det angle masks, if any:
             if gen_angles_rad_masked is not None or det_angles_rad_masked is not None:
@@ -92,14 +89,6 @@ def compute_tfm_complex(worker_id, fmc_3d, tfm_constructor, time_vector_us, sign
                                                                              fill_value=0)
 
     # Main loop over A-scans complete.  Complex intensity image created.
-
-    # # Convert intensity to root-power decibels by normalising relative to a maximum intensity value.
-    # # To avoid saturation by SAW crosstalk, ignore pixels in the upper third of the image.
-    # row_index_below_which_to_max = round(tfm_params.n_pixels_z / 3)
-    # reference_amplitude_0dB = np.max(np.abs(intensity_image_complex[row_index_below_which_to_max:, :]))
-    #
-    # # Convert to root-power dB using this reference amplitude:
-    # image_decibels = 20 * np.log10(np.abs(intensity_image_complex) / reference_amplitude_0dB)
 
     # Return the image in dB units back to the script calling this function.
     return intensity_image_complex, fmc_3d_filtered
