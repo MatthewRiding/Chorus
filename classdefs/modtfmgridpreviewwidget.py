@@ -8,7 +8,8 @@ from functions.modgetcheckerboardarray import get_checkerboard_array
 class TFMGridPreviewWidget(QWidget):
     """A class used in the TFM parameters dialog to visualise the TFM grid relative to the linear, periodic array."""
 
-    def __init__(self, n_elements, grid_width_x_default_mm, z_max_default_mm, n_pixels_z_default, *args, **kwargs):
+    def __init__(self, n_elements, pitch_mm, grid_width_x_default_mm, z_max_default_mm, n_pixels_z_default, *args,
+                 **kwargs):
         super(TFMGridPreviewWidget, self).__init__(*args, **kwargs)
 
         # Define instance variables, with default values:
@@ -48,7 +49,7 @@ class TFMGridPreviewWidget(QWidget):
 
         # Plot a set of points representing the array elements at the top of the axes:
         def default_array_plot():
-            aperture_mm = 10
+            aperture_mm = (n_elements - 1) * pitch_mm
             x_elements_mm = np.linspace(0, aperture_mm, self.n_elements, endpoint=True) - (aperture_mm / 2)
             z_elements_mm = np.zeros(self.n_elements)
             line_array_elements, = self.mpl_canvas.ax.plot(x_elements_mm, z_elements_mm, ls='none', marker='s',

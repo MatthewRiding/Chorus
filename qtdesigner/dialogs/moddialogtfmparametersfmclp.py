@@ -12,7 +12,7 @@ from classdefs.modmaskspec import MaskSpec
 
 
 class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
-    def __init__(self, n_elements, parent=None, tfm_constructor_previous=None):
+    def __init__(self, n_elements, frequency_sampling_hz, parent=None, tfm_constructor_previous=None):
         super().__init__(parent)
 
         self.setupUi(self)
@@ -55,13 +55,14 @@ class DialogTFMParamsFMCLP(QDialog, Ui_dialog_tfm_parameters_fmclp):
         self.combobox_mask_angle_det_text_changed(default_preset_angle_det)
 
         # Add an instance of the TFMGridPreviewWidget to the main horizontal layout:
-        self.grid_preview_widget = TFMGridPreviewWidget(n_elements,
+        self.grid_preview_widget = TFMGridPreviewWidget(n_elements, self.doubleSpinBox_pitch_mm.value(),
                                                         self.doubleSpinBox_grid_size_x_mm.value(),
                                                         self.doubleSpinBox_grid_size_z_mm.value(),
                                                         self.spinBox_n_pixels_z.value())
         self.h_layout_main.addWidget(self.grid_preview_widget)
 
-        # Set the maximum bandpass filter frequency to be frequency_sampling / 2:
+        # Set the maximum bandpass filter frequency to be frequency_sampling / 2 (required for filter functions):
+        self.doubleSpinBox_band_max_MHz.setMaximum((frequency_sampling_hz / 2) / 10**6)
 
         # Wire signals to slots:
         self.buttonBox.accepted.connect(self.accept_button_clicked)

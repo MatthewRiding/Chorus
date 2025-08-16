@@ -287,8 +287,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def request_tfm_params(self):
         # Open a dialog to request the TFM parameters:
-        dialog_tfm_params = DialogTFMParamsFMCLP(n_elements=self.full_matrix.n_elements, parent=self,
-                                                 tfm_constructor_previous=self.tfm_constructor_previous)
+        dialog_tfm_params = DialogTFMParamsFMCLP(n_elements=self.full_matrix.n_elements,
+                                                 frequency_sampling_hz=self.full_matrix.frequency_sampling_hz,
+                                                 parent=self, tfm_constructor_previous=self.tfm_constructor_previous)
         dialog_tfm_params.exec()
         # When the dialog has either been accepted or rejected:
         # Boolean showing whether the user clicked 'accept' or 'cancel':
