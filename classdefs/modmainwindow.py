@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox
 from PySide6.QtGui import QAction, QIcon, QShortcut
 from PySide6.QtCore import QThreadPool
 from classdefs.modtfmworker import TFMWorker
+from functions.modconvertvtonm import convert_quartet_v_to_nm
 
 from qtdesigner.mainui.UI_chorusmain import Ui_MainWindow
 from qtdesigner.dialogs.moddialogfileimportparamsfmclp import DialogImportFMCLP
@@ -33,13 +34,11 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.det_index = 0
         self.time_index = 0
         self.time_us = 0
-        self.c_max_mv = 1
-        self.c_min_mv = -1
         self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_nm=np.zeros(shape=(1000, 64, 64)),
                                                     t_min_us=-1, t_max_us=10)
-        self.fmc_3d_displayed = np.zeros(shape=(1000, 64, 64))
+        self.displacements_3d_displayed_nm = np.zeros(shape=(1000, 64, 64))
         self.selected_tfm_image = None
-        self.decibel_colormap_minimum = -10
+        # self.decibel_colormap_minimum = -10
         self.pixel_selected = False
         self.pixel_coords_tuple_m = None
         self.delay_matrix_s = None
@@ -65,7 +64,6 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_display_unfiltered.setEnabled(False)
         self.doubleSpinBox_c_min.setEnabled(False)
         self.doubleSpinBox_c_max.setEnabled(False)
-        self.doubleSpinBox_dB_min.setEnabled(False)
         self.doubleSpinBox_time_us.setEnabled(False)
         self.spinBox_det_index.setEnabled(False)
         self.spinBox_gen_index.setEnabled(False)
@@ -115,8 +113,6 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_add_tfm_image.clicked.connect(self.add_tfm_button_clicked)
         self.listView_tfm_images.selectionModel().selectionChanged.connect(self.tfm_image_list_view_selection_changed)
         self.pushButton_display_unfiltered.toggled.connect(self.button_display_unfiltered_toggled)
-        self.slider_dB_min.valueChanged.connect(self.decibel_min_changed_by_slider)
-        self.doubleSpinBox_dB_min.valueChanged.connect(self.decibel_min_changed_by_spinbox)
         self.pushButton_delete_tfm_image.clicked.connect(self.delete_scan_button_pressed)
         self.tfm_image_widget_2D.pixel_clicked.connect(self.new_pixel_clicked)
         self.shortcut_ctrl_n.activated.connect(self.shortcut_ctrl_n_activated)
@@ -215,10 +211,15 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import.
-            # Load the 3d fmc a-scan data (in either volts or displacement in nm).
+            # Load the 3d fmc a-scan displacement data (in volts).
             # Use a different loading function depending on the format of the file provided:
             loading_function = dict_loading_functions[file_extension]
-            displacements_3d_nm = loading_function(file_path_mat)
+            displacements_3d_v = loading_function(file_path_mat)
+            # The raw displacement signals contained in the selected file are assumed to be in units of volts, output
+            # from the Sound and Bright Quartet laser ultrasound detection interferometer operating in 'absolute' mode.
+            # The Volt values can be converted to units of nanometers (nm) thanks to the absolute calibration of the
+            # Quartet (10nm per volt):
+            displacements_3d_nm = convert_quartet_v_to_nm(displacements_3d_v)
 
             # If requested, de-trend the displacements_3d_nm and overwrite:
             if detrend_tf:
@@ -238,9 +239,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def macro_new_fmclp_dataset(self):
         """Update everything to reflect the new fmclp data set:"""
-        self.fmc_3d_displayed = self.full_matrix.displacements_3d_nm
+        self.displacements_3d_displayed_nm = self.full_matrix.displacements_3d_nm
 
-        # Update plot axes based on n_tx:
+        # Update plot axes based on the new number of array elements and time vector:
         self.b_scan_view_widget_iso_det.update_axes(self.full_matrix.n_elements,
                                                     self.full_matrix.t_min_us, self.full_matrix.t_max_us)
         self.b_scan_view_widget_iso_gen.update_axes(self.full_matrix.n_elements,
@@ -259,7 +260,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Visualise the FMC on the plots:
         # Use min and max to set colormaps:
-        self.set_colormap_limits_to_data_min_and_max()
+        self.set_colormap_limits_to_displacement_max_abs()
         # Update displayed data:
         self.update_iso_det_plot()
         self.b_scan_view_widget_iso_det.mpl_canvas.draw()
@@ -285,42 +286,28 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         return provided, description, file_path, file_extension, t_min, t_max, detrend_tf
 
-    def request_tfm_params(self):
-        # Open a dialog to request the TFM parameters:
-        dialog_tfm_params = DialogTFMParamsFMCLP(n_elements=self.full_matrix.n_elements,
-                                                 frequency_sampling_hz=self.full_matrix.frequency_sampling_hz,
-                                                 parent=self, tfm_constructor_previous=self.tfm_constructor_previous)
-        dialog_tfm_params.exec()
-        # When the dialog has either been accepted or rejected:
-        # Boolean showing whether the user clicked 'accept' or 'cancel':
-        accepted = dialog_tfm_params.result()
-        # If accepted, dialog_tfm_params.tfm_constructor will be a TFMParams object containing all the parameters needed.
-        # If rejected, dialog_tfm_params.tfm_constructor will return 'None'.
-        tfm_constructor = dialog_tfm_params.tfm_constructor
-        # Update the 'previous' tfm params for use if the dialog is called again:
-        self.tfm_constructor_previous = tfm_constructor
-        return accepted, tfm_constructor
-
     def update_iso_det_plot(self):
-        # Update B-scan colormap:
-        b_scan_iso_det = self.fmc_3d_displayed[:, self.det_index, :]
-        self.b_scan_view_widget_iso_det.update_b_scan_display(b_scan_iso_det)
+        # Update the displacement data used in the iso-det B-scan colormap:
+        displacements_b_scan_iso_det_nm = self.displacements_3d_displayed_nm[:, self.det_index, :]
+        self.b_scan_view_widget_iso_det.update_b_scan_display(displacements_b_scan_iso_det_nm)
         # If a pixel is selected, update the delays shown:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
             delay_vector_iso_det = self.delay_matrix_s[self.det_index, :]
             self.b_scan_view_widget_iso_det.update_delays(delay_vector_iso_det)
 
     def update_iso_gen_plot(self):
-        b_scan_iso_gen = self.fmc_3d_displayed[:, :, self.gen_index]
-        self.b_scan_view_widget_iso_gen.update_b_scan_display(b_scan_iso_gen)
+        # Update the displacement data used in the iso-gen B-scan colormap:
+        displacements_b_scan_iso_gen_nm = self.displacements_3d_displayed_nm[:, :, self.gen_index]
+        self.b_scan_view_widget_iso_gen.update_b_scan_display(displacements_b_scan_iso_gen_nm)
         # If a pixel is selected, update the delays shown:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
             delay_vector_iso_gen = self.delay_matrix_s[:, self.gen_index]
             self.b_scan_view_widget_iso_gen.update_delays(delay_vector_iso_gen)
 
     def update_iso_time_plot(self):
-        iso_time_slice = self.fmc_3d_displayed[self.time_index, :, :]
-        self.iso_time_plot_widget.update_iso_time_slice_display(iso_time_slice)
+        # Update the displacement data used in the iso-time colormap:
+        displacements_iso_time_slice_nm = self.displacements_3d_displayed_nm[self.time_index, :, :]
+        self.iso_time_plot_widget.update_iso_time_slice_display(displacements_iso_time_slice_nm)
         # If a pixel is selected, update the highlighted nearest A-scans:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
             self.iso_time_plot_widget.update_nearest_a_scans(self.delay_matrix_s,
@@ -330,7 +317,6 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.slider_det_index.setEnabled(False)
         self.slider_gen_index.setEnabled(False)
         self.slider_time_index.setEnabled(False)
-        self.slider_dB_min.setEnabled(False)
 
     def update_and_reset_time_gen_det_controls(self):
         # Update step for time navigation via the doubleSpinBox:
@@ -388,44 +374,44 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.spinBox_det_index.setValue(0)
         self.spinBox_det_index.blockSignals(False)
 
-    def c_min_changed(self, c_min_mv):
-        self.c_min_mv = c_min_mv
-        self.set_c_min_for_all_widgets(c_min_mv)
-        self.update_raw_cdata_images()
+    def c_min_changed(self, u_min_nm):
+        self.set_colormap_u_min_for_all_images(u_min_nm)
+        self.update_raw_displacement_images()
 
-    def c_max_changed(self, c_max_mv):
-        self.c_max_mv = c_max_mv
-        self.set_c_max_for_all_widgets(c_max_mv)
-        self.update_raw_cdata_images()
+    def c_max_changed(self, u_max_nm):
+        self.set_colormap_u_max_for_all_widgets(u_max_nm)
+        self.update_raw_displacement_images()
 
-    def set_c_min_for_all_widgets(self, c_min_mv):
-        self.iso_time_plot_widget.axes_image.set_clim(vmin=c_min_mv * 10 ** -3)
-        self.b_scan_view_widget_iso_det.axes_image.set_clim(vmin=c_min_mv * 10 ** -3)
-        self.b_scan_view_widget_iso_gen.axes_image.set_clim(vmin=c_min_mv * 10 ** -3)
+    def set_colormap_u_min_for_all_images(self, colormap_u_min_nm):
+        self.iso_time_plot_widget.axes_image.set_clim(vmin=colormap_u_min_nm)
+        self.b_scan_view_widget_iso_det.axes_image.set_clim(vmin=colormap_u_min_nm)
+        self.b_scan_view_widget_iso_gen.axes_image.set_clim(vmin=colormap_u_min_nm)
         if self.pcm_viewer_widget:
-            self.pcm_viewer_widget.new_c_min(c_min_mv)
+            self.pcm_viewer_widget.new_c_min(colormap_u_min_nm)
 
-    def set_c_max_for_all_widgets(self, c_max_mv):
-        self.iso_time_plot_widget.axes_image.set_clim(vmax=c_max_mv * 10 ** -3)
-        self.b_scan_view_widget_iso_det.axes_image.set_clim(vmax=c_max_mv * 10 ** -3)
-        self.b_scan_view_widget_iso_gen.axes_image.set_clim(vmax=c_max_mv * 10 ** -3)
+    def set_colormap_u_max_for_all_widgets(self, colormap_u_max_nm):
+        self.iso_time_plot_widget.axes_image.set_clim(vmax=colormap_u_max_nm)
+        self.b_scan_view_widget_iso_det.axes_image.set_clim(vmax=colormap_u_max_nm)
+        self.b_scan_view_widget_iso_gen.axes_image.set_clim(vmax=colormap_u_max_nm)
         if self.pcm_viewer_widget:
-            self.pcm_viewer_widget.new_c_max(c_max_mv)
+            self.pcm_viewer_widget.new_c_max(colormap_u_max_nm)
 
-    def set_colormap_limits_to_data_min_and_max(self):
-        # Set the colormap limits to be the extreme min and max of the dataset:
-        c_min_mv = np.min(self.fmc_3d_displayed) / 10 ** -3
-        c_max_mv = np.max(self.fmc_3d_displayed) / 10 ** -3
-        self.c_min_mv = c_min_mv
-        self.c_max_mv = c_max_mv
-        self.set_c_min_for_all_widgets(c_min_mv)
-        self.set_c_max_for_all_widgets(c_max_mv)
+    def set_colormap_limits_to_displacement_max_abs(self):
+        # Set the colormap limits to be + and - the maximum of the absolute values of displacement in the dataset:
+        displacement_max_abs_nm = np.max(np.abs(self.displacements_3d_displayed_nm))
 
-        # Display the new colormap limits in the spinBoxes:
-        self.doubleSpinBox_c_min.setValue(c_min_mv)
-        self.doubleSpinBox_c_max.setValue(c_max_mv)
+        self.set_colormap_u_min_for_all_images(- displacement_max_abs_nm)
+        self.set_colormap_u_max_for_all_widgets(displacement_max_abs_nm)
 
-    def update_raw_cdata_images(self):
+        # Display the new colormap limits in the spinBoxes, muting their signals to prevent triggering connected slots:
+        self.doubleSpinBox_c_min.blockSignals(True)
+        self.doubleSpinBox_c_min.setValue(- displacement_max_abs_nm)
+        self.doubleSpinBox_c_min.blockSignals(False)
+        self.doubleSpinBox_c_max.blockSignals(True)
+        self.doubleSpinBox_c_max.setValue(displacement_max_abs_nm)
+        self.doubleSpinBox_c_max.blockSignals(False)
+
+    def update_raw_displacement_images(self):
         self.iso_time_plot_widget.blit_manager.blit_all_animated_artists()
         self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
         self.b_scan_view_widget_iso_gen.blit_manager.blit_all_animated_artists()
@@ -442,6 +428,22 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         if accepted:
             self.run_tfm_job(tfm_constructor)
+
+    def request_tfm_params(self):
+        # Open a dialog to request the TFM parameters:
+        dialog_tfm_params = DialogTFMParamsFMCLP(n_elements=self.full_matrix.n_elements,
+                                                 frequency_sampling_hz=self.full_matrix.frequency_sampling_hz,
+                                                 parent=self, tfm_constructor_previous=self.tfm_constructor_previous)
+        dialog_tfm_params.exec()
+        # When the dialog has either been accepted or rejected:
+        # Boolean showing whether the user clicked 'accept' or 'cancel':
+        accepted = dialog_tfm_params.result()
+        # If accepted, dialog_tfm_params.tfm_constructor will be a TFMConstructor object containing all the parameters
+        # needed.  If rejected, dialog_tfm_params.tfm_constructor will return 'None'.
+        tfm_constructor = dialog_tfm_params.tfm_constructor
+        # Update the 'previous' tfm params for use if the dialog is called again:
+        self.tfm_constructor_previous = tfm_constructor
+        return accepted, tfm_constructor
 
     def run_tfm_job(self, tfm_constructor):
         # When the user submits their new TFM parameters, we need to start a QRunnable to compute the TFM:
@@ -472,10 +474,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def worker_result_detected(self, data_tuple):
         # A worker has transmitted the 'result' signal.  The data_tuple contains two elements:
-        worker_id, image_complex, fmc_3d_filtered = data_tuple
+        worker_id, summed_displacement_image_complex_nm, fmc_3d_filtered = data_tuple
 
         # Pin the returned complex image & filtered FMC to the associated ListedTFMImage instance:
-        self.list_model_tfm_images.dict_listed_images[worker_id].new_image_complex(image_complex)
+        self.list_model_tfm_images.dict_listed_images[worker_id].new_image_complex(summed_displacement_image_complex_nm)
         self.list_model_tfm_images.dict_listed_images[worker_id].fmc_3d_filtered = fmc_3d_filtered
 
     def worker_finished_detected(self, worker_id):
@@ -520,16 +522,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             if self.cheops_viewer_widget:
                 self.cheops_viewer_widget.hide_cheops_pyramid()
 
-        # Display the image in decibels on the tfm image plot:
-        # Update the axis limits:
-        self.tfm_image_widget_2D.update_axes_centred(self.selected_tfm_image.tfm_constructor.grid_size_x_mm,
-                                                     self.selected_tfm_image.tfm_constructor.grid_size_z_mm)
-        # Transmit the cdata:
-        self.tfm_image_widget_2D.axes_image.set_data(self.selected_tfm_image.image_decibels)
-        # Reset the colormap limits:
-        self.tfm_image_widget_2D.axes_image.set_clim(vmin=self.decibel_colormap_minimum)
-        # Draw the TFM image:
-        self.tfm_image_widget_2D.mpl_canvas.draw()
+        # Prompt the tfm image widget to update:
+        self.tfm_image_widget_2D.new_listed_tfm_image(self.selected_tfm_image)
 
         # If the selected TFM image used filtering, display the filtered FMC on the B-scan and iso-time widgets:
         if self.selected_tfm_image.tfm_constructor.filter_spec:
@@ -543,36 +537,13 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             # Disable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(False)
 
-        if self.decibel_colormap_minimum == 0:
-            # Set decibel_minimum back to its default value of -10dB:
-            self.decibel_colormap_minimum = -10
-        # Display the current decibel minimum value in the slider and spinbox:
-        # Remember: the slider is inverted for aesthetic reasons, and takes positive values of the dB min:
-        self.slider_dB_min.setValue(abs(self.decibel_colormap_minimum))
-        self.doubleSpinBox_dB_min.setValue(self.decibel_colormap_minimum)
-
-        # Transmit the tfm_constructor for this TFM image to the tfm_image_widget for use in pretty printing:
-        self.tfm_image_widget_2D.tfm_constructor = self.selected_tfm_image.tfm_constructor
-
-        # Enable the dB min slider and spinbox:
-        self.slider_dB_min.setEnabled(True)
-        self.doubleSpinBox_dB_min.setEnabled(True)
-
         # Enable the 'delete tfm image' button:
         self.pushButton_delete_tfm_image.setEnabled(True)
 
     def clear_and_deactivate_tfm_image_area(self):
         # The user has clicked on a TFM image that is still processing:
         # Display nothing on the TFM image plot:
-        self.tfm_image_widget_2D.display_default_image()
-        self.clear_pixel_selection()
-        self.tfm_image_widget_2D.redraw()
-        # Display zero on the dB slider and spin box (this also sets self.decibel_minimum to zero):
-        self.slider_dB_min.setValue(0)
-        self.doubleSpinBox_dB_min.setValue(0)
-        # Disable the dB min slider and spinbox:
-        self.slider_dB_min.setEnabled(False)
-        self.doubleSpinBox_dB_min.setEnabled(False)
+        self.tfm_image_widget_2D.clear_and_deactivate_tfm_image_area()
         # Disable the delete tfm image button:
         self.pushButton_delete_tfm_image.setEnabled(False)
 
@@ -580,36 +551,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.tfm_image_widget_2D.clear_pixel_cursor()
         self.pixel_selected = False
 
-    def decibel_min_changed_by_slider(self, minus_decibel_minimum):
-        # The slider outputs positive values, which need to be converted to negative:
-        decibel_minimum = - minus_decibel_minimum
-        # Display the new value in the spinbox, without emitting signals:
-        self.doubleSpinBox_dB_min.blockSignals(True)
-        self.doubleSpinBox_dB_min.setValue(decibel_minimum)
-        self.doubleSpinBox_dB_min.blockSignals(False)
-        # Call the generic dB min changed function:
-        self.decibel_min_changed(decibel_minimum)
-
-    def decibel_min_changed_by_spinbox(self, decibel_minimum):
-        # Display the new value on the slider, without emitting signals:
-        self.slider_dB_min.blockSignals(True)
-        self.slider_dB_min.setValue(abs(self.decibel_colormap_minimum))
-        self.slider_dB_min.blockSignals(False)
-        # Call the generic dB min changed function:
-        self.decibel_min_changed(decibel_minimum)
-
-    def decibel_min_changed(self, decibel_minimum):
-        # Pin the new value to self:
-        self.decibel_colormap_minimum = decibel_minimum
-        # Change the v_min parameter of the TFM image plot:
-        self.tfm_image_widget_2D.axes_image.set_clim(vmin=self.decibel_colormap_minimum)
-        # Blit the new RGB image:
-        self.tfm_image_widget_2D.blit_manager.blit_all_animated_artists()
-
     def macro_swap_displayed_fmc(self, fmc_3d):
         # Swap the c_data on the B-scan widgets and iso-time widgets:
         # Update the fmc used for display:
-        self.fmc_3d_displayed = fmc_3d
+        self.displacements_3d_displayed_nm = fmc_3d
         # Update the c_data on the B-scan plots and iso-time plot:
         self.update_iso_det_plot()
         self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
@@ -770,8 +715,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             if self.pixel_selected:
                 self.update_pcm_viewer_data()
             # Set the colormap limits for the PCM image:
-            self.pcm_viewer_widget.new_c_min(self.c_min_mv)
-            self.pcm_viewer_widget.new_c_max(self.c_max_mv)
+            self.pcm_viewer_widget.new_c_min(self.doubleSpinBox_c_min.value())
+            self.pcm_viewer_widget.new_c_max(self.doubleSpinBox_c_max.value())
             # Set axes extent based on n_tx of loaded data:
             self.pcm_viewer_widget.update_axes(self.full_matrix.n_elements)
             # Open the window:
@@ -784,9 +729,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def update_pcm_viewer_data(self):
         # Extract the pixel contributions matrix:
-        pcm = extract_pcm(self.fmc_3d_displayed, self.full_matrix.time_vector_us, self.delay_matrix_s)
+        pcm_complex_nm = extract_pcm(self.displacements_3d_displayed_nm, self.full_matrix.time_vector_us, self.delay_matrix_s)
         # Update all data in the pcm viewer window:
-        self.pcm_viewer_widget.macro_new_pixel_clicked(pcm,
+        self.pcm_viewer_widget.macro_new_pixel_clicked(pcm_complex_nm,
                                                        self.pixel_coords_tuple_m[0], self.pixel_coords_tuple_m[1],
                                                        self.selected_tfm_image.tfm_constructor.material.critical_angle_radians,
                                                        self.selected_tfm_image.tfm_constructor.pitch_mm,

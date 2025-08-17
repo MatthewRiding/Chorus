@@ -112,43 +112,6 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.tfm_image_widget_2D)
 
-        self.widget_3 = QWidget(self.frame_tfm)
-        self.widget_3.setObjectName(u"widget_3")
-        self.widget_3.setMaximumSize(QSize(50, 16777215))
-        self.verticalLayout_4 = QVBoxLayout(self.widget_3)
-        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.verticalLayout_4.setContentsMargins(0, 6, 0, -1)
-        self.label_5 = QLabel(self.widget_3)
-        self.label_5.setObjectName(u"label_5")
-
-        self.verticalLayout_4.addWidget(self.label_5)
-
-        self.doubleSpinBox_dB_min = QDoubleSpinBox(self.widget_3)
-        self.doubleSpinBox_dB_min.setObjectName(u"doubleSpinBox_dB_min")
-        self.doubleSpinBox_dB_min.setDecimals(1)
-        self.doubleSpinBox_dB_min.setMinimum(-50.000000000000000)
-        self.doubleSpinBox_dB_min.setMaximum(0.000000000000000)
-
-        self.verticalLayout_4.addWidget(self.doubleSpinBox_dB_min)
-
-        self.slider_dB_min = QSlider(self.widget_3)
-        self.slider_dB_min.setObjectName(u"slider_dB_min")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.slider_dB_min.sizePolicy().hasHeightForWidth())
-        self.slider_dB_min.setSizePolicy(sizePolicy1)
-        self.slider_dB_min.setMinimum(0)
-        self.slider_dB_min.setMaximum(50)
-        self.slider_dB_min.setOrientation(Qt.Vertical)
-        self.slider_dB_min.setInvertedAppearance(True)
-        self.slider_dB_min.setInvertedControls(False)
-
-        self.verticalLayout_4.addWidget(self.slider_dB_min)
-
-
-        self.horizontalLayout_2.addWidget(self.widget_3)
-
 
         self.gridLayout.addWidget(self.frame_tfm, 0, 0, 1, 1)
 
@@ -253,6 +216,9 @@ class Ui_MainWindow(object):
 
         self.slider_det_index = QSlider(self.widget)
         self.slider_det_index.setObjectName(u"slider_det_index")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.slider_det_index.sizePolicy().hasHeightForWidth())
         self.slider_det_index.setSizePolicy(sizePolicy1)
         self.slider_det_index.setLayoutDirection(Qt.LeftToRight)
@@ -346,7 +312,6 @@ class Ui_MainWindow(object):
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"TFM images :", None))
         self.pushButton_delete_tfm_image.setText("")
         self.pushButton_add_tfm_image.setText("")
-        self.label_5.setText(QCoreApplication.translate("MainWindow", u"dB min :", None))
         self.pushButton_display_unfiltered.setText(QCoreApplication.translate("MainWindow", u"Display unfiltered", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Colormap limits (mV) : ", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"Min :", None))

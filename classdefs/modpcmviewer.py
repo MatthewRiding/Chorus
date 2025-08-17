@@ -25,16 +25,16 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
 
         # Instance variables:
         self.critical_angle_lines_visible = False
-        self.pcm_complex = np.zeros([64, 64])
-        self.pcm_amplitudes_mV = np.zeros([64, 64])
-        self.c_min_mv = -1
-        self.c_max_mv = 1
+        self.pcm_complex_nm = np.zeros([64, 64])
+        self.pcm_displacements_nm = np.zeros([64, 64])
+        self.colormap_u_min_nm = -1
+        self.colormap_u_max_nm = 1
         self.n_tx = None
         self.pitch_mm = None
         self.z_pixel_m = None
         self.x_pixel_m = None
         self.real = True
-        self.set_pcm_data_function = self.set_data_amplitude
+        self.set_pcm_data_function = self.set_data_displacement
         self.mouse_down_in_amp_vs_angle_plot = False
 
         # Set attributes:
@@ -82,24 +82,24 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         self.pcm_viewer_closed.emit()
         super().closeEvent(event)
 
-    def macro_new_pixel_clicked(self, pcm_complex, x_pixel_m, z_pixel_m, critical_angle_radians, pitch_mm, n_tx):
+    def macro_new_pixel_clicked(self, pcm_complex_nm, x_pixel_m, z_pixel_m, critical_angle_radians, pitch_mm, n_tx):
         # The user has clicked a new pixel.
         self.n_tx = n_tx
         self.x_pixel_m = x_pixel_m
         self.z_pixel_m = z_pixel_m
         self.pitch_mm = pitch_mm
         # Update the pcm display:
-        self.update_pcm(pcm_complex)
+        self.update_pcm(pcm_complex_nm)
         # Update the critical angle lines:
         self.update_critical_angle_lines(x_pixel_m, z_pixel_m, critical_angle_radians, pitch_mm, n_tx)
 
-    def update_pcm(self, pcm_complex):
-        self.pcm_complex = pcm_complex
+    def update_pcm(self, pcm_complex_nm):
+        self.pcm_complex_nm = pcm_complex_nm
 
         if self.checkBox_real.isChecked():
-            self.pcm_amplitudes_mV = np.real(pcm_complex) * 1000
+            self.pcm_displacements_nm = np.real(pcm_complex_nm)
         else:
-            self.pcm_amplitudes_mV = np.imag(pcm_complex) * 1000
+            self.pcm_displacements_nm = np.imag(pcm_complex_nm)
 
         # Call the current set_pcm_data function:
         self.set_pcm_data_function()
@@ -138,25 +138,25 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.mpl_widget_pcm.axes_image.set_clim(vmin=-1, vmax=1)
         else:
             # Return to normal imshow contrast:
-            self.set_pcm_data_function = self.set_data_amplitude
-            self.mpl_widget_pcm.axes_image.set_clim(vmin=self.c_min_mv,
-                                                    vmax=self.c_max_mv)
+            self.set_pcm_data_function = self.set_data_displacement
+            self.mpl_widget_pcm.axes_image.set_clim(vmin=self.colormap_u_min_nm,
+                                                    vmax=self.colormap_u_max_nm)
 
         # Call the new function:
         self.set_pcm_data_function()
         self.re_draw_pcm_mplcanvas()
 
-    def new_c_min(self, c_min_mv):
-        self.c_min_mv = c_min_mv
+    def new_c_min(self, colormap_u_min_nm):
+        self.colormap_u_min_nm = colormap_u_min_nm
         if not self.check_box_sign.isChecked():
             # Update the c limit of the axes image:
-            self.mpl_widget_pcm.axes_image.set_clim(vmin=c_min_mv)
+            self.mpl_widget_pcm.axes_image.set_clim(vmin=colormap_u_min_nm)
 
-    def new_c_max(self, c_max_mv):
-        self.c_max_mv = c_max_mv
+    def new_c_max(self, colormap_u_max_nm):
+        self.colormap_u_max_nm = colormap_u_max_nm
         if not self.check_box_sign.isChecked():
             # Update the c limit of the axes image:
-            self.mpl_widget_pcm.axes_image.set_clim(vmax=c_max_mv)
+            self.mpl_widget_pcm.axes_image.set_clim(vmax=colormap_u_max_nm)
 
     def re_draw_pcm_mplcanvas(self):
         self.mpl_widget_pcm.mpl_canvas.draw()
@@ -164,11 +164,11 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
     def update_axes(self, n_tx):
         self.mpl_widget_pcm.axes_image.set_extent((0, n_tx-1, n_tx-1, 0))
 
-    def set_data_amplitude(self):
-        self.mpl_widget_pcm.axes_image.set_data(self.pcm_amplitudes_mV)
+    def set_data_displacement(self):
+        self.mpl_widget_pcm.axes_image.set_data(self.pcm_displacements_nm)
 
     def set_data_sign(self):
-        self.mpl_widget_pcm.axes_image.set_data(np.sign(self.pcm_amplitudes_mV))
+        self.mpl_widget_pcm.axes_image.set_data(np.sign(self.pcm_displacements_nm))
 
     def real_toggled(self):
         if self.checkBox_real.isChecked():
@@ -178,7 +178,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_imag.setChecked(False)
             self.checkBox_imag.blockSignals(False)
             # Use real part:
-            self.pcm_amplitudes_mV = np.real(self.pcm_complex)
+            self.pcm_displacements_nm = np.real(self.pcm_complex_nm)
         else:
             # Use imag:
             # Check imag checkbox without emitting signals:
@@ -186,7 +186,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_imag.setChecked(True)
             self.checkBox_imag.blockSignals(False)
             # Use imag part:
-            self.pcm_amplitudes_mV = np.imag(self.pcm_complex)
+            self.pcm_displacements_nm = np.imag(self.pcm_complex_nm)
         # Call set data function:
         self.set_pcm_data_function()
         # Re-draw pcm mpl_canvas:
@@ -200,7 +200,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_real.setChecked(False)
             self.checkBox_real.blockSignals(False)
             # Use imag part:
-            self.pcm_amplitudes_mV = np.imag(self.pcm_complex)
+            self.pcm_displacements_nm = np.imag(self.pcm_complex_nm)
         else:
             # Use real:
             # Check real checkbox without emitting signals:
@@ -208,7 +208,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.checkBox_real.setChecked(True)
             self.checkBox_real.blockSignals(False)
             # Use real part:
-            self.pcm_amplitudes_mV = np.real(self.pcm_complex)
+            self.pcm_displacements_nm = np.real(self.pcm_complex_nm)
         # Call set data function:
         self.set_pcm_data_function()
         # Re-draw pcm mpl_canvas:
@@ -218,9 +218,9 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         # Obtain the PhasorScheme instance associated with the selection of the ComboBox:
         phasor_scheme = dict_phasor_schemes[self.comboBox_phasor_schemes.currentText()]
         # Sum elements of the PCM depending on which phasor scheme has been selected:
-        complex_numbers = phasor_scheme.summing_func(self.pcm_complex)
+        complex_numbers = phasor_scheme.summing_func(self.pcm_complex_nm)
         # Create a list of rgb colors for the arrows according to the color_func of the selected PhasorScheme:
-        n_tx = np.shape(self.pcm_complex)[1]
+        n_tx = np.shape(self.pcm_complex_nm)[1]
         colors = phasor_scheme.color_func(n_tx)
         # Call plotting method of Phasor plot widget:
         max_amp = np.max(np.abs(complex_numbers))
@@ -239,7 +239,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         # Calculate the cumulative sum in the manner specified by the sum type comboBox:
         sum_type = self.comboBox_sum_type.currentText()
         summing_func = dict_sum_types[sum_type]
-        cumsum = summing_func(self.pcm_complex, gen_indices_in_cumsum_order)
+        cumsum = summing_func(self.pcm_complex_nm, gen_indices_in_cumsum_order)
         # Set x and y data of plot widget:
         gen_angles_ordered = gen_angles[gen_indices_in_cumsum_order]
         self.sum_vs_mask_angle_widget.update_data(gen_angles_ordered, cumsum, y_label=sum_type)
@@ -305,7 +305,7 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         dialog_pretty_print = DialogPrettyPrint(self, self.mpl_widget_pcm.mpl_canvas.fig,
                                                 'Generation index',
                                                 'Detection index',
-                                                'Amplitude (mV)',
+                                                'Displacement (nm)',
                                                 title_string=title_string)
         dialog_pretty_print.exec()
 
@@ -315,6 +315,6 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         dialog_pretty_print = DialogPrettyPrint(self, self.sum_vs_mask_angle_widget.mpl_canvas.fig,
                                                 'Mask angle (°)',
                                                 '[Insert]',
-                                                'Amplitude (mV)',
+                                                'Displacement (nm)',
                                                 title_string=title_string)
         dialog_pretty_print.exec()

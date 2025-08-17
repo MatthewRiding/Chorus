@@ -22,42 +22,44 @@ def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress
     if tfm_constructor.filter_spec:
         signal_progress.emit((worker_id, ' Filtering...'))
 
-        fmc_3d_filtered = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
+        displacements_fmc_3d_filtered_nm = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
 
         # Use the analytic filtered fmc_3d in the subsequent calculations:
-        fmc_3d_processed = hilbert(fmc_3d_filtered, axis=0)
+        displacements_fmc_3d_processed_nm = hilbert(displacements_fmc_3d_filtered_nm, axis=0)
     else:
         # No filtering: Use the analytic fmc_3d in the subsequent calculations:
-        fmc_3d_processed = hilbert(full_matrix.displacements_3d_nm, axis=0)
+        displacements_fmc_3d_processed_nm = hilbert(full_matrix.displacements_3d_nm, axis=0)
 
         # This function (compute_tfm) returns the filtered fmc_3d back to the caller for display in B-scan & fmc plots.
-        # When not filtering, we want to return the 'fmc_3d_filtered' variable as 'None':
-        fmc_3d_filtered = None
+        # When not filtering, we want to return the 'displacements_fmc_3d_filtered_nm' variable as 'None':
+        displacements_fmc_3d_filtered_nm = None
 
     # Main imaging algorithm loop:
 
     # Pre-allocate an accumulator array for the intensity image:
-    intensity_image_complex = np.zeros(np.shape(x_grid_m))
+    summed_displacement_image_complex_nm = np.zeros(np.shape(x_grid_m))
 
-    # Assumption: 'Square' full matrix: n_tx = n_elements.
+    # Assumption: 'Square' full matrix: n_tx = n_rx = n_elements.
     n_tx = full_matrix.n_elements
+    n_rx = n_tx
 
     # Nested loops over detection (slow, outer) and generation (fast, inner) index:
-    for det_index in range(n_tx):
+    for det_index in range(n_rx):
         # Emit the 'progress' signal, transmitting a string showing the current detection index out of the total:
-        signal_progress.emit((worker_id, f' TFM ({det_index + 1}/{n_tx})...'))
+        signal_progress.emit((worker_id, f' TFM ({det_index + 1}/{n_rx})...'))
 
         # Inner loop: over generation index (fast):
         for gen_index in range(n_tx):
-            # Calculate total travel time for send and receive via each pixel for this combination of det_index and
+            # Calculate the total travel time for send and receive via each pixel for this combination of det_index and
             # gen_index:
             delays_for_this_a_scan_s = times_send_s[gen_index] + times_receive_s[det_index]
 
-            # Submit the array of total travel times as 1D-interpolation query points for the A-scan associated with
+            # Submit the array of total travel times as interpolation query points for the A-scan associated with
             # this combination of gen_index and det_index:
-            a_scan_amplitudes_analytic = fmc_3d_processed[:, det_index, gen_index]
-            sampled_amps_complex = np.interp(delays_for_this_a_scan_s, (full_matrix.time_vector_us * 10**-6),
-                                             a_scan_amplitudes_analytic, left=0, right=0)
+            a_scan_displacements_analytic_nm = displacements_fmc_3d_processed_nm[:, det_index, gen_index]
+            displacements_sampled_complex_nm = np.interp(delays_for_this_a_scan_s,
+                                                         (full_matrix.time_vector_us * 10 ** -6),
+                                                         a_scan_displacements_analytic_nm, left=0, right=0)
 
             # Apply gen and det angle masks, if any:
             if gen_angles_rad_masked is not None or det_angles_rad_masked is not None:
@@ -78,17 +80,19 @@ def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress
                 # Combine gen and det masks:
                 mask_gen_and_det = np.ma.mask_or(mask_gen, mask_det)
                 # Apply the combined mask to the pixel contributions:
-                sampled_amps_complex_processed = np.ma.masked_where(mask_gen_and_det, sampled_amps_complex, copy=False)
+                displacements_sampled_complex_processed_nm = np.ma.masked_where(mask_gen_and_det,
+                                                                                displacements_sampled_complex_nm,
+                                                                                copy=False)
             else:
                 # The user has requested no masking:
-                sampled_amps_complex_processed = sampled_amps_complex
+                displacements_sampled_complex_processed_nm = displacements_sampled_complex_nm
 
             # Sum the sampled amplitudes onto the intensity image accumulator array:
             # Fill any masked elements with zeros:
-            intensity_image_complex = intensity_image_complex + np.ma.filled(sampled_amps_complex_processed,
-                                                                             fill_value=0)
+            summed_displacement_image_complex_nm = summed_displacement_image_complex_nm + np.ma.filled(
+                displacements_sampled_complex_processed_nm, fill_value=0)
 
-    # Main loop over A-scans complete.  Complex intensity image created.
+    # Main loop over A-scans complete.  Complex summed displacement image created.
 
-    # Return the image in dB units back to the script calling this function.
-    return intensity_image_complex, fmc_3d_filtered
+    # Return the summed displacement image in units of complex nanometres back to the script calling this function.
+    return summed_displacement_image_complex_nm, displacements_fmc_3d_filtered_nm

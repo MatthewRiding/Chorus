@@ -88,8 +88,8 @@ class IsoTimePlotWidget(QWidget):
                                                           self.gen_line,
                                                           self.plotref_nearest_a_scans_line])
 
-    def update_iso_time_slice_display(self, iso_time_slice):
-        self.axes_image.set_data(iso_time_slice)
+    def update_iso_time_slice_display(self, displacements_iso_time_slice_nm):
+        self.axes_image.set_data(displacements_iso_time_slice_nm)
 
     def update_axes(self, n_tx):
         self.axes_image.set_extent((0, n_tx-1, n_tx-1, 0))

@@ -85,9 +85,9 @@ class BScanViewWidget(QWidget):
         if event.inaxes == self.mpl_canvas.ax:
             print(round(event.xdata), round(event.ydata))
 
-    def update_b_scan_display(self, b_scan):
-        # Display a new B-scan on the plot:
-        self.axes_image.set_data(b_scan)
+    def update_b_scan_display(self, displacements_b_scan_nm):
+        # Display new B-scan displacements on the plot:
+        self.axes_image.set_data(displacements_b_scan_nm)
 
     def update_axes(self, n_tx, t_min, t_max):
         # Set image extent:

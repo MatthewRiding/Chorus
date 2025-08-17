@@ -12,7 +12,9 @@ def load_fmclp_from_mat_file(file_path):
     mat_variables_keys = get_variable_keys_from_mat_contents_dict(mat_contents_dict)
 
     # Allocate the variables found in the .mat file to their correct workspace objects:
-    # Convert 2D array FMC format into 3D array format:
     # BAD ASSUMPTION: A-scan matrix is the only variable present in the .mat file.
-    fmc_3d = convert_2d_to_3d_fmclp_format(mat_contents_dict[mat_variables_keys[0]])
-    return fmc_3d
+    # In same the line, convert 2D array FMC format into 3D array format:
+    displacements_fmc_3d_v = convert_2d_to_3d_fmclp_format(mat_contents_dict[mat_variables_keys[0]])
+    # The recorded displacement measurements are assumed to be in units of volts, output
+    # from the Sound and Bright Quartet.
+    return displacements_fmc_3d_v
