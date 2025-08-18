@@ -30,7 +30,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1278, 805)
+        MainWindow.resize(1438, 805)
         self.actionOpen = QAction(MainWindow)
         self.actionOpen.setObjectName(u"actionOpen")
         self.centralwidget = QWidget(MainWindow)
@@ -160,33 +160,19 @@ class Ui_MainWindow(object):
         self.gridLayout_3 = QGridLayout(self.groupBox)
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.gridLayout_3.setContentsMargins(6, 6, 6, 6)
-        self.label_2 = QLabel(self.groupBox)
-        self.label_2.setObjectName(u"label_2")
-        self.label_2.setAlignment(Qt.AlignCenter)
+        self.doubleSpinBox_colormap_max_abs_pm = QDoubleSpinBox(self.groupBox)
+        self.doubleSpinBox_colormap_max_abs_pm.setObjectName(u"doubleSpinBox_colormap_max_abs_pm")
+        self.doubleSpinBox_colormap_max_abs_pm.setMinimum(0.000000000000000)
+        self.doubleSpinBox_colormap_max_abs_pm.setMaximum(1000000.000000000000000)
+        self.doubleSpinBox_colormap_max_abs_pm.setSingleStep(1.000000000000000)
 
-        self.gridLayout_3.addWidget(self.label_2, 0, 0, 1, 1)
-
-        self.doubleSpinBox_c_min = QDoubleSpinBox(self.groupBox)
-        self.doubleSpinBox_c_min.setObjectName(u"doubleSpinBox_c_min")
-        self.doubleSpinBox_c_min.setMinimum(-1000.000000000000000)
-        self.doubleSpinBox_c_min.setMaximum(1000.000000000000000)
-        self.doubleSpinBox_c_min.setSingleStep(0.100000000000000)
-
-        self.gridLayout_3.addWidget(self.doubleSpinBox_c_min, 0, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.doubleSpinBox_colormap_max_abs_pm, 0, 1, 1, 1)
 
         self.label = QLabel(self.groupBox)
         self.label.setObjectName(u"label")
         self.label.setAlignment(Qt.AlignCenter)
 
-        self.gridLayout_3.addWidget(self.label, 1, 0, 1, 1)
-
-        self.doubleSpinBox_c_max = QDoubleSpinBox(self.groupBox)
-        self.doubleSpinBox_c_max.setObjectName(u"doubleSpinBox_c_max")
-        self.doubleSpinBox_c_max.setMinimum(-1000.000000000000000)
-        self.doubleSpinBox_c_max.setMaximum(1000.000000000000000)
-        self.doubleSpinBox_c_max.setSingleStep(0.100000000000000)
-
-        self.gridLayout_3.addWidget(self.doubleSpinBox_c_max, 1, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.label, 0, 0, 1, 1)
 
 
         self.verticalLayout_3.addWidget(self.groupBox)
@@ -225,7 +211,7 @@ class Ui_MainWindow(object):
         self.slider_det_index.setMaximum(1000)
         self.slider_det_index.setOrientation(Qt.Vertical)
 
-        self.gridLayout_2.addWidget(self.slider_det_index, 2, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.slider_det_index, 2, 1, 1, 1, Qt.AlignHCenter)
 
         self.label_3 = QLabel(self.widget)
         self.label_3.setObjectName(u"label_3")
@@ -240,7 +226,7 @@ class Ui_MainWindow(object):
         self.slider_time_index.setOrientation(Qt.Vertical)
         self.slider_time_index.setInvertedAppearance(True)
 
-        self.gridLayout_2.addWidget(self.slider_time_index, 2, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.slider_time_index, 2, 0, 1, 1, Qt.AlignHCenter)
 
         self.label_det_index = QLabel(self.widget)
         self.label_det_index.setObjectName(u"label_det_index")
@@ -255,7 +241,7 @@ class Ui_MainWindow(object):
         self.slider_gen_index.setMaximum(1000)
         self.slider_gen_index.setOrientation(Qt.Vertical)
 
-        self.gridLayout_2.addWidget(self.slider_gen_index, 2, 3, 1, 1)
+        self.gridLayout_2.addWidget(self.slider_gen_index, 2, 3, 1, 1, Qt.AlignHCenter)
 
         self.spinBox_det_index = QSpinBox(self.widget)
         self.spinBox_det_index.setObjectName(u"spinBox_det_index")
@@ -291,7 +277,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1278, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1438, 22))
         self.menu_file = QMenu(self.menubar)
         self.menu_file.setObjectName(u"menu_file")
         MainWindow.setMenuBar(self.menubar)
@@ -313,9 +299,9 @@ class Ui_MainWindow(object):
         self.pushButton_delete_tfm_image.setText("")
         self.pushButton_add_tfm_image.setText("")
         self.pushButton_display_unfiltered.setText(QCoreApplication.translate("MainWindow", u"Display unfiltered", None))
-        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Colormap limits (mV) : ", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Min :", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"Max:", None))
+        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Colormap limits (pm) : ", None))
+        self.doubleSpinBox_colormap_max_abs_pm.setSuffix(QCoreApplication.translate("MainWindow", u"pm", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"Max Abs :", None))
         self.label_gen_index.setText(QCoreApplication.translate("MainWindow", u"Gen :", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Time :", None))
         self.label_det_index.setText(QCoreApplication.translate("MainWindow", u"Det :", None))

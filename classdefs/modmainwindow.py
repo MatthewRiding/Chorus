@@ -38,7 +38,6 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
                                                     t_min_us=-1, t_max_us=10)
         self.displacements_3d_displayed_nm = np.zeros(shape=(1000, 64, 64))
         self.selected_tfm_image = None
-        # self.decibel_colormap_minimum = -10
         self.pixel_selected = False
         self.pixel_coords_tuple_m = None
         self.delay_matrix_s = None
@@ -62,8 +61,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.disable_sliders()
         self.disable_tfm_buttons()
         self.pushButton_display_unfiltered.setEnabled(False)
-        self.doubleSpinBox_c_min.setEnabled(False)
-        self.doubleSpinBox_c_max.setEnabled(False)
+        self.doubleSpinBox_colormap_max_abs_pm.setEnabled(False)
         self.doubleSpinBox_time_us.setEnabled(False)
         self.spinBox_det_index.setEnabled(False)
         self.spinBox_gen_index.setEnabled(False)
@@ -108,8 +106,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.spinBox_gen_index.valueChanged.connect(self.gen_index_changed_by_spinbox)
         self.slider_time_index.valueChanged.connect(self.time_index_changed_by_slider)
         self.doubleSpinBox_time_us.valueChanged.connect(self.time_value_changed_by_spinbox)
-        self.doubleSpinBox_c_min.valueChanged.connect(self.c_min_changed)
-        self.doubleSpinBox_c_max.valueChanged.connect(self.c_max_changed)
+        self.doubleSpinBox_colormap_max_abs_pm.valueChanged.connect(self.colormap_max_abs_changed)
         self.pushButton_add_tfm_image.clicked.connect(self.add_tfm_button_clicked)
         self.listView_tfm_images.selectionModel().selectionChanged.connect(self.tfm_image_list_view_selection_changed)
         self.pushButton_display_unfiltered.toggled.connect(self.button_display_unfiltered_toggled)
@@ -382,6 +379,17 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.set_colormap_u_max_for_all_widgets(u_max_nm)
         self.update_raw_displacement_images()
 
+    def colormap_max_abs_changed(self, colormap_max_abs_pm):
+        # Convert picometres to nanometres:
+        colormap_max_abs_nm = colormap_max_abs_pm / 1000
+        # Use positive value as vmax of clims, use negative value as vmin:
+        colormap_u_min_nm = - colormap_max_abs_nm
+        colormap_u_max_nm = colormap_max_abs_nm
+        # Update clims of all images:
+        self.set_colormap_u_min_for_all_images(colormap_u_min_nm)
+        self.set_colormap_u_max_for_all_widgets(colormap_u_max_nm)
+        self.update_raw_displacement_images()
+
     def set_colormap_u_min_for_all_images(self, colormap_u_min_nm):
         self.iso_time_plot_widget.axes_image.set_clim(vmin=colormap_u_min_nm)
         self.b_scan_view_widget_iso_det.axes_image.set_clim(vmin=colormap_u_min_nm)
@@ -403,13 +411,11 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.set_colormap_u_min_for_all_images(- displacement_max_abs_nm)
         self.set_colormap_u_max_for_all_widgets(displacement_max_abs_nm)
 
-        # Display the new colormap limits in the spinBoxes, muting their signals to prevent triggering connected slots:
-        self.doubleSpinBox_c_min.blockSignals(True)
-        self.doubleSpinBox_c_min.setValue(- displacement_max_abs_nm)
-        self.doubleSpinBox_c_min.blockSignals(False)
-        self.doubleSpinBox_c_max.blockSignals(True)
-        self.doubleSpinBox_c_max.setValue(displacement_max_abs_nm)
-        self.doubleSpinBox_c_max.blockSignals(False)
+        # Display the new colormap max abs displacement value in the DoubleSpinBox, muting its signals to prevent
+        # triggering connected slots:
+        self.doubleSpinBox_colormap_max_abs_pm.blockSignals(True)
+        self.doubleSpinBox_colormap_max_abs_pm.setValue(displacement_max_abs_nm * 1000)
+        self.doubleSpinBox_colormap_max_abs_pm.blockSignals(False)
 
     def update_raw_displacement_images(self):
         self.iso_time_plot_widget.blit_manager.blit_all_animated_artists()
@@ -575,8 +581,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.slider_det_index.setEnabled(True)
         self.slider_gen_index.setEnabled(True)
         self.slider_time_index.setEnabled(True)
-        self.doubleSpinBox_c_min.setEnabled(True)
-        self.doubleSpinBox_c_max.setEnabled(True)
+        self.doubleSpinBox_colormap_max_abs_pm.setEnabled(True)
         self.doubleSpinBox_time_us.setEnabled(True)
         self.spinBox_gen_index.setEnabled(True)
         self.spinBox_det_index.setEnabled(True)
@@ -715,8 +720,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             if self.pixel_selected:
                 self.update_pcm_viewer_data()
             # Set the colormap limits for the PCM image:
-            self.pcm_viewer_widget.new_c_min(self.doubleSpinBox_c_min.value())
-            self.pcm_viewer_widget.new_c_max(self.doubleSpinBox_c_max.value())
+            colormap_max_abs_nm = self.doubleSpinBox_colormap_max_abs_pm.value() / 1000
+            self.pcm_viewer_widget.new_c_min(-colormap_max_abs_nm)
+            self.pcm_viewer_widget.new_c_max(colormap_max_abs_nm)
             # Set axes extent based on n_tx of loaded data:
             self.pcm_viewer_widget.update_axes(self.full_matrix.n_elements)
             # Open the window:
