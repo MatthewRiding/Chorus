@@ -9,9 +9,9 @@ from functions.modgetdecibelimage import get_decibel_image_from_complex
 cmap_viridis = mpl_colormaps['viridis']
 cmap_cet_d07_blue_beige_yellow = cc.m_CET_D7
 
-image_type_real = ImageType('Real', np.real, 'Max |u| (nm):', cmap_cet_d07_blue_beige_yellow)
-image_type_imag = ImageType('Imag', np.imag, 'Max |u| (nm):', cmap_cet_d07_blue_beige_yellow)
-image_type_abs = ImageType('Abs', np.abs, 'Max |u| (nm):', cmap_viridis, can_be_positive_and_negative=False)
+image_type_real = ImageType('Real', np.real, 'Max |u|\n(nm):', cmap_cet_d07_blue_beige_yellow)
+image_type_imag = ImageType('Imag', np.imag, 'Max |u|\n(nm):', cmap_cet_d07_blue_beige_yellow)
+image_type_abs = ImageType('Abs', np.abs, 'Max |u|\n(nm):', cmap_viridis, can_be_positive_and_negative=False)
 
 image_type_dB = ImageType('dB', get_decibel_image_from_complex, 'dB min:', cmap_viridis, -40)
 

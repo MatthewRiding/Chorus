@@ -2,12 +2,38 @@ import numpy as np
 from scipy.signal import hilbert
 
 
-def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress):
-    """A generic TFM function that can run for different combinations of send and
-    receive wave type."""
-    # Emit the progress signal with the string 'Initialising...' to tell the user that
-    # the calculation has begun:
-    signal_progress.emit((worker_id, ' Initialising...'))
+def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, worker_id=None):
+    """
+    Computes an elastic wave reflectivity image via the delay-and-sum imaging algorithm known as the Total Focussing
+    Method (TFM) (see Holmes, Caroline, Bruce W. Drinkwater, and Paul D. Wilcox. "Post-processing of the full matrix of
+    ultrasonic transmit–receive array data for non-destructive evaluation." NDT & e International 38.8 (2005):
+     701-711.).
+
+    Params:
+    -------
+    :param full_matrix: FullMatrixLinearPeriodic
+        An instance of the FullMatrixLinearPeriodic class containing the full matrix displacement, time and sampling
+        information.
+    :param tfm_constructor: TFMConstructor
+        An instance of the TFMConstructor class containing all the data regarding the desired TFM image.
+    :param signal_progress: Signal, optional
+        A Qt Signal that can be emitted to communicate progress information back to the main GUI thread of a PySide6
+        application.  An instance of any class that supports '.emit()' can be passed for use outside a GUI framework.
+    :param worker_id: str, optional
+        A unique uuid for this TFM calculation, used to identify progress signals sent back to the Chorus
+        GUI thread during parallel processing.  Can be replaced
+
+    Returns:
+    -------
+    :return: (summed_displacement_image_complex_nm: ndarray of complex128, displacements_3d_filtered: ndarray)
+        The delay-and-sum image.  The complex form is returned for optional envelope processing down-stream.
+        The 3d array of filtered displacements is also returned for reference.
+    """
+
+    if signal_progress:
+        # Emit the progress signal with the string 'Initialising...' to tell the user that
+        # the calculation has begun:
+        signal_progress.emit((worker_id, ' Initialising...'))
 
     # Build 2D arrays storing the imaging grid pixel coordinates:
     x_grid_m, z_grid_m = tfm_constructor.get_pixel_meshgrid_m()
@@ -20,7 +46,8 @@ def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress
 
     # Apply bandpass filter to A-scans if requested:
     if tfm_constructor.filter_spec:
-        signal_progress.emit((worker_id, ' Filtering...'))
+        if signal_progress:
+            signal_progress.emit((worker_id, ' Filtering...'))
 
         displacements_fmc_3d_filtered_nm = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
 
@@ -45,8 +72,9 @@ def compute_tfm_complex(worker_id, full_matrix, tfm_constructor, signal_progress
 
     # Nested loops over detection (slow, outer) and generation (fast, inner) index:
     for det_index in range(n_rx):
-        # Emit the 'progress' signal, transmitting a string showing the current detection index out of the total:
-        signal_progress.emit((worker_id, f' TFM ({det_index + 1}/{n_rx})...'))
+        if signal_progress:
+            # Emit the 'progress' signal, transmitting a string showing the current detection index out of the total:
+            signal_progress.emit((worker_id, f' TFM ({det_index + 1}/{n_rx})...'))
 
         # Inner loop: over generation index (fast):
         for gen_index in range(n_tx):
