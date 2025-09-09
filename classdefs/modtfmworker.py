@@ -34,10 +34,10 @@ class TFMWorker(QRunnable):
         try:
             # Run the generic TFM function, feeding it the specific delay law function that has been selected by the
             # user:
-            summed_displacement_image_complex_nm, fmc_3d_filtered = compute_tfm_complex(self.worker_id,
-                                                                                        self.full_matrix,
+            summed_displacement_image_complex_nm, fmc_3d_filtered = compute_tfm_complex(self.full_matrix,
                                                                                         self.tfm_constructor,
-                                                                                        self.signals.progress)
+                                                                                        self.signals.progress,
+                                                                                        self.worker_id)
         except:
             traceback.print_exc()
             # Get the Python error tuple:
