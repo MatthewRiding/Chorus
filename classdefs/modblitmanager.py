@@ -72,3 +72,6 @@ class BlitManager:
             self.canvas.blit(self.canvas.figure.bbox)
         # Let the GUI event loop process anything it has to do:
         #self.canvas.flush_events()
+
+    def delete_last_artist(self):
+        del self._animated_artists[-1]

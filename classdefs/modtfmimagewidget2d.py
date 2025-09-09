@@ -20,6 +20,7 @@ class TFMImageWidget2D(QWidget):
         self.colormap_max_abs_nm = None
         self.colormap_dB_min = -10  # Default slider value in dB.
         self.image_type = dict_image_types['dB']  # Default to dB mode.
+        self.isochron_contour_collection = None
 
         # Create an instance of the MplCanvas class:
         self.mpl_canvas = MplCanvas(self, width=5, height=4, dpi=100)
@@ -102,7 +103,8 @@ class TFMImageWidget2D(QWidget):
                                                                markersize=6,
                                                                color=[1, 1, 1],
                                                                linestyle='None',
-                                                               marker=6)
+                                                               marker=6,
+                                                               zorder=3)
 
         # Set up the slider area widgets:
         # Add image types to the image type combobox:
@@ -129,14 +131,29 @@ class TFMImageWidget2D(QWidget):
         self.spin_box_clim.valueChanged.connect(self.spinbox_value_changed)
 
     def mplcanvas_click_response(self, event):
-        # Plot the white caret marker at the location that has been clicked:
-        self.plotref_selected_pixel.set_data([event.xdata], [event.ydata])
-        self.blit_manager.blit_all_animated_artists()
+        # Respond differently to left (1) and right (3) mouse button clicks:
+        if event.button == 1:
+            # Left mouse button clicked:
+            # Plot the white caret marker at the location that has been clicked:
+            self.plotref_selected_pixel.set_data([event.xdata], [event.ydata])
+            self.blit_manager.blit_all_animated_artists()
 
-        # Emit the 'pixel_clicked' event to prompt the B-scan and iso-t widgets to display the associated delay law:
-        x_coord_m = event.xdata * 10 ** -3
-        z_coord_m = event.ydata * 10 ** -3
-        self.pixel_clicked.emit((x_coord_m, z_coord_m))
+            # Emit the 'pixel_clicked' event to prompt the B-scan and iso-t widgets to display the associated delay law:
+            if event.xdata is not None:
+                x_coord_m = event.xdata * 10 ** -3
+                z_coord_m = event.ydata * 10 ** -3
+            else:
+                x_coord_m = event.xdata
+                z_coord_m = event.ydata
+            self.pixel_clicked.emit((x_coord_m, z_coord_m))
+        else:
+            # Not left mouse button:
+            # Clear the white caret marker.
+            self.clear_pixel_cursor()
+            # Blit changes to TFM canvas:
+            self.blit_manager.blit_all_animated_artists()
+            # Emit the pixel clicked signal, passing a tuple of None values to prompt Cheops plots to clear:
+            self.pixel_clicked.emit((None, None))
 
     def motion_hover(self, event):
         # MatPlotLib mouse motion event response:
@@ -213,10 +230,13 @@ class TFMImageWidget2D(QWidget):
 
     def update_axes_centred(self):
         # Set axis limits to reflect the size of the chosen TFM grid:
-        self.axes_image.set_extent((-self.listed_tfm_image.tfm_constructor.grid_size_x_mm / 2,
-                                    self.listed_tfm_image.tfm_constructor.grid_size_x_mm / 2,
-                                    self.listed_tfm_image.tfm_constructor.grid_size_z_mm,
-                                    0))
+        xlim_left_mm = -self.listed_tfm_image.tfm_constructor.grid_size_x_mm / 2
+        xlim_right_mm = self.listed_tfm_image.tfm_constructor.grid_size_x_mm / 2
+        zlim_bottom_mm = self.listed_tfm_image.tfm_constructor.grid_size_z_mm
+        zlim_top_mm = 0
+        self.axes_image.set_extent((xlim_left_mm, xlim_right_mm, zlim_bottom_mm, zlim_top_mm))
+        self.mpl_canvas.ax.set_xlim(xlim_left_mm, xlim_right_mm)
+        self.mpl_canvas.ax.set_ylim(zlim_bottom_mm, zlim_top_mm)
 
     def image_type_changed(self):
         # Get the current image_type based on the text in the combobox:
@@ -288,9 +308,9 @@ class TFMImageWidget2D(QWidget):
         # Display nothing on the TFM image plot:
         self.display_default_image()
         self.clear_pixel_cursor()
-        self.mpl_canvas.redraw()
+        self.mpl_canvas.draw()
         # Display zero on the dB slider and spin box (this also sets self.decibel_minimum to zero):
-        self.slider.setValue(0)
+        self.slider.setValue(self.colormap_dB_min)
         self.spin_box_clim.setValue(0)
         # Disable the slider area widgets:
         self.set_slider_area_widgets_enabled(False)
@@ -403,3 +423,35 @@ class TFMImageWidget2D(QWidget):
         self.spin_box_clim.blockSignals(True)
         self.spin_box_clim.setValue(spinbox_value)
         self.spin_box_clim.blockSignals(False)
+
+    def update_isochron(self, x_grid_mm, z_grid_mm, travel_times_all_pixels_s, time_selected_s):
+        # Remove old isochron:
+        if self.isochron_contour_collection:
+            for isochron_line in self.isochron_contour_collection.collections:
+                isochron_line.remove()
+            # De-register previous artist collection from BlitManager:
+            self.blit_manager.delete_last_artist()
+
+        # Create new isochron:
+        self.isochron_contour_collection = self.mpl_canvas.ax.contour(x_grid_mm, z_grid_mm, travel_times_all_pixels_s,
+                                                                      [time_selected_s], colors='m', linewidths=1.5)
+
+        # Register the new isochron artist with the BlitManager (there should only be one item in 'collections', since we
+        # have only requested one contour level, at time_selected_us):
+        artist = self.isochron_contour_collection.collections[0]
+        self.blit_manager.add_artist(artist)
+
+        # Blit the changes:
+        self.blit_manager.blit_all_animated_artists()
+
+    def clear_isochron(self):
+        # If there is an isochron plotted, remove it and blit changes:
+        if self.isochron_contour_collection:
+            for isochron_line in self.isochron_contour_collection.collections:
+                isochron_line.remove()
+            # Set instance variable to None:
+            self.isochron_contour_collection = None
+            # De-register previous artist collection from BlitManager:
+            self.blit_manager.delete_last_artist()
+            # Blit the changes:
+            self.blit_manager.blit_all_animated_artists()
