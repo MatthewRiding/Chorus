@@ -19,6 +19,7 @@ class ListedTFMImage:
         self.complete = False
         self.x_gen_matrix_m = None
         self.x_det_matrix_m = None
+        self.x_grid_m, self.z_grid_m = tfm_constructor.get_pixel_meshgrid_m()
 
         # Build instance variables derived from tfm_constructor:
         self.x_gen_matrix_m, self.x_det_matrix_m = build_x_gen_and_x_det_matrices_m(n_tx, self.tfm_constructor.pitch_mm)

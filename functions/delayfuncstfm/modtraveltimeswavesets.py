@@ -7,7 +7,7 @@ from functions.delayfuncstfm.modtdirect import calculate_travel_times_t_direct
 from functions.delayfuncstfm.modh import (calculate_travel_times_head_wave_to_pixels_subcrit_masked,
                                           calculate_travel_times_head_wave_to_pixels)
 from functions.modcalculatecriticalangle import calculate_critical_angle_radians
-from functions.modcalculatedirectrayangles import calculate_direct_ray_angles_radians
+from functions.modcalculatedirectrayangles import calculate_direct_ray_angles_all_pixels_all_el_radians
 
 
 def calculate_xz_travel_times_ll(x_grid_m, z_grid_m, x_elements_m, v_L_mpers, v_T_mpers):
@@ -96,7 +96,7 @@ def calculate_xz_travel_times_hybrid_s(x_grid_m, z_grid_m, x_elements_m, c_L_mpe
 
     # Now combine them according to the ray angle threshold:  Pixels below theta_crit get the direct SV travel
     # time, whilst pixels above theta crit get the head wave travel time:
-    angles_direct_rays_deg = np.rad2deg(calculate_direct_ray_angles_radians(x_grid_m, z_grid_m, x_elements_m))
+    angles_direct_rays_deg = np.rad2deg(calculate_direct_ray_angles_all_pixels_all_el_radians(x_grid_m, z_grid_m, x_elements_m))
     theta_crit_deg = np.rad2deg(calculate_critical_angle_radians(c_L_mpers, c_S_mpers))
     travel_times_hybrid_send_s = np.where(angles_direct_rays_deg < theta_crit_deg, travel_times_sv_direct_s, travel_times_h_s)
 

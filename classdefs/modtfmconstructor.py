@@ -1,7 +1,7 @@
 from functions.modbuildtfmgrid import build_tfm_grid
 from functions.modbuildxelements import build_x_elements_m
 from functions.modcalculatedistancesdirect import calculate_distances_direct_all_pixels_all_elements_m
-from functions.modcalculatedirectrayangles import (calculate_direct_ray_angles_radians,
+from functions.modcalculatedirectrayangles import (calculate_direct_ray_angles_all_pixels_all_el_radians,
                                                    calculate_direct_ray_angles_degrees)
 from functions.modcreatemasks import create_tfm_masks
 
@@ -63,8 +63,8 @@ class TFMConstructor:
         return distances_direct_all_pixels_all_el_m
 
     def get_angles_direct_rays_all_pixels_all_el_radians(self, x_grid_m, z_grid_m):
-        angles_direct_all_pixels_all_el_radians = calculate_direct_ray_angles_radians(x_grid_m, z_grid_m,
-                                                                                      self.x_elements_m)
+        angles_direct_all_pixels_all_el_radians = calculate_direct_ray_angles_all_pixels_all_el_radians(x_grid_m, z_grid_m,
+                                                                                                        self.x_elements_m)
         return angles_direct_all_pixels_all_el_radians
 
     def get_angles_direct_rays_all_pixels_all_el_degrees(self, x_grid_m, z_grid_m):
@@ -106,3 +106,7 @@ class TFMConstructor:
             return angles_all_pixels_all_el_rad_masked_gen, angles_all_pixels_all_el_rad_masked_det
         else:
             return None, None
+
+    def get_aperture_mm(self):
+        aperture_mm = self.pitch_mm * (self.n_elements - 1)
+        return aperture_mm
