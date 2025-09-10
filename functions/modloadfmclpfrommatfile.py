@@ -1,4 +1,5 @@
 from scipy.io import loadmat
+import numpy as np
 
 from functions.modgetvariablekeysfrommatcontentsdict import get_variable_keys_from_mat_contents_dict
 from functions.modconvert2dto3dfmcformat import convert_2d_to_3d_fmclp_format
@@ -13,8 +14,14 @@ def load_fmclp_from_mat_file(file_path):
 
     # Allocate the variables found in the .mat file to their correct workspace objects:
     # BAD ASSUMPTION: A-scan matrix is the only variable present in the .mat file.
-    # In same the line, convert 2D array FMC format into 3D array format:
-    displacements_fmc_3d_v = convert_2d_to_3d_fmclp_format(mat_contents_dict[mat_variables_keys[0]])
+    displacements_fmc_v = mat_contents_dict[mat_variables_keys[0]]
+
+    if np.ndim(displacements_fmc_v) == 2:
+        # Convert 2D array FMC format into 3D array format:
+        displacements_fmc_3d_v = convert_2d_to_3d_fmclp_format(displacements_fmc_v)
+    else:
+        displacements_fmc_3d_v = displacements_fmc_v
+
     # The recorded displacement measurements are assumed to be in units of volts, output
     # from the Sound and Bright Quartet.
     return displacements_fmc_3d_v
