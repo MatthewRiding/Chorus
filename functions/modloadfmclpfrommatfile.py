@@ -20,6 +20,7 @@ def load_fmclp_from_mat_file(file_path):
         # Convert 2D array FMC format into 3D array format:
         displacements_fmc_3d_v = convert_2d_to_3d_fmclp_format(displacements_fmc_v)
     else:
+        # Array is already 3D:
         displacements_fmc_3d_v = displacements_fmc_v
 
     # The recorded displacement measurements are assumed to be in units of volts, output
