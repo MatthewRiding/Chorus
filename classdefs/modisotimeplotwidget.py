@@ -167,4 +167,3 @@ class IsoTimePlotWidget(QWidget):
         positive = False if event.button == 'up' else True
         # Emit the canvas_scroll signal to prompt changes in the rest of the GUI:
         self.canvas_scroll.emit(positive)
-        pass

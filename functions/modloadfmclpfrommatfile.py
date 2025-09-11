@@ -21,7 +21,10 @@ def load_fmclp_from_mat_file(file_path):
         displacements_fmc_3d_v = convert_2d_to_3d_fmclp_format(displacements_fmc_v)
     else:
         # Array is already 3D:
-        displacements_fmc_3d_v = displacements_fmc_v
+        # Transpose from MATLAB Fortran-ordered array order to Numpy C-ordered array order:
+        # MATLAB: (n_rows, n_columns, n_pages)
+        # Numpy: (n_pages, n_rows, n_columns)
+        displacements_fmc_3d_v = np.transpose(displacements_fmc_v, (2, 0, 1))
 
     # The recorded displacement measurements are assumed to be in units of volts, output
     # from the Sound and Bright Quartet.
