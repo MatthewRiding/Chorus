@@ -801,5 +801,5 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.cheops_viewer_widget = None
 
     def update_cheops_pyramid(self):
-        self.cheops_viewer_widget.update_cheops_pyramid(self, self.delay_matrix_s)
+        self.cheops_viewer_widget.update_cheops_pyramid(self.delay_matrix_s)
         self.cheops_viewer_widget.mpl_canvas.draw()
