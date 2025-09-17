@@ -16,7 +16,6 @@ from classdefs.modfullmatrix import FullMatrixLinearPeriodic
 from classdefs.modisochronmanager import IsochronManager
 from functions.moddetrendfmc3d import detrend_fmc_3d
 from functions.modextractpcm import extract_pcm
-from functions.modcalculateanglematrix import calculate_pixel_ray_angle_matrix_deg
 from functions.modgeneratedelaymatrix import generate_delay_matrix
 from corevariables.modfiletypeloading import dict_loading_functions
 
