@@ -3,11 +3,9 @@ from PySide6.QtWidgets import QApplication
 
 from classdefs.modmainwindow import ChorusMainWindow
 
-
-app = QApplication(sys.argv)
-app.setStyle('Fusion')
-window = ChorusMainWindow()
-window.show()
-app.exec()
-
-print('hello')
+if __name__=='__main__':
+    app = QApplication(sys.argv)
+    app.setStyle('Fusion')
+    window = ChorusMainWindow()
+    window.show()
+    app.exec()
