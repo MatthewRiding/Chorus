@@ -37,4 +37,4 @@ The Chorus `MainWindow` should appear as in the screenshot below:
 
 ## Compatible full matrix data formats
 
-
+See the relevant page of the Chorus wiki: 
