@@ -1,3 +1,10 @@
+"""
+This is the main script for running the Chorus GUI.
+
+The script creates an instance of ChorusMainWindow, and runs it inside a PySide6 QApplication.
+"""
+
+
 import sys
 from PySide6.QtWidgets import QApplication
 
