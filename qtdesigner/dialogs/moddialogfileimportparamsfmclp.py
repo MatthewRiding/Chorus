@@ -18,6 +18,7 @@ class DialogImportFMCLP(QDialog, Ui_dialog_import_fmclp):
         self.file_extension = None
         self.t_min_us = None
         self.t_max_us = None
+        self.conversion_factor_to_nm = None
 
         # Display folder icon on browse button:
         self.push_button_browse_for_file.setIcon(QIcon('graphicfiles/browse_folder.png'))
@@ -46,3 +47,6 @@ class DialogImportFMCLP(QDialog, Ui_dialog_import_fmclp):
         self.file_extension = pathlib.Path(self.file_path).suffix
         self.t_min_us = self.doubleSpinBox_time_min_us.value()
         self.t_max_us = self.doubleSpinBox_time_max_us.value()
+        # If the associated checkbox is ticked, save the specified conversion factor:
+        if self.groupBox_convert_to_nm.isChecked():
+            self.conversion_factor_to_nm = self.doubleSpinBox_conversion_factor_to_nm.value()

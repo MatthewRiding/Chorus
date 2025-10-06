@@ -3,7 +3,6 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox
 from PySide6.QtGui import QAction, QIcon, QShortcut
 from PySide6.QtCore import QThreadPool, Signal, Qt
 from classdefs.modtfmworker import TFMWorker
-from functions.modconvertvtonm import convert_quartet_v_to_nm
 
 from qtdesigner.mainui.UI_chorusmain import Ui_MainWindow
 from qtdesigner.dialogs.moddialogfileimportparamsfmclp import DialogImportFMCLP
@@ -247,19 +246,22 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
     def open_fmclp(self):
         # Launch a dialog window to ask the user for the file import and display parameters:
         (provided, description, file_path_mat,
-         file_extension, t_min_us, t_max_us, detrend_tf) = self.request_file_import_params()
+         file_extension, t_min_us, t_max_us,
+         detrend_tf, conversion_factor_to_nm) = self.request_file_import_params()
 
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import.
-            # Load the 3d fmc a-scan displacement data (in volts).
+            # Load the raw 3d fmc a-scan data.
             # Use a different loading function depending on the format of the file provided:
             loading_function = dict_loading_functions[file_extension]
-            displacements_3d_v = loading_function(file_path_mat)
-            # The raw displacement signals contained in the selected file are assumed to be in units of volts, output
-            # from the Sound and Bright Quartet laser ultrasound detection interferometer operating in 'absolute' mode.
-            # The Volt values can be converted to units of nanometers (nm) thanks to the absolute calibration of the
-            # Quartet (10nm per volt):
-            displacements_3d_nm = convert_quartet_v_to_nm(displacements_3d_v)
+            displacements_3d_raw = loading_function(file_path_mat)
+
+            # The raw measurements contained in the selected file may require a conversion factor to be transformed into
+            # units of nanometres.
+            if conversion_factor_to_nm:
+                displacements_3d_nm = conversion_factor_to_nm * displacements_3d_raw
+            else:
+                displacements_3d_nm = displacements_3d_raw
 
             # If requested, de-trend the displacements_3d_nm and overwrite:
             if detrend_tf:
@@ -327,8 +329,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         t_min = dialog_file_import_params.t_min_us
         t_max = dialog_file_import_params.t_max_us
         detrend_tf = dialog_file_import_params.checkBox_detrend.isChecked()
+        conversion_factor_to_nm = dialog_file_import_params.conversion_factor_to_nm
 
-        return provided, description, file_path, file_extension, t_min, t_max, detrend_tf
+        return provided, description, file_path, file_extension, t_min, t_max, detrend_tf, conversion_factor_to_nm
 
     def update_iso_det_plot(self):
         # Update the displacement data used in the iso-det B-scan colormap:

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>466</width>
-    <height>313</height>
+    <width>416</width>
+    <height>366</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Load FMC from file :</string>
+      <string>Load 1D periodic full matrix dataset from file :</string>
      </property>
     </widget>
    </item>
@@ -37,7 +37,11 @@
     <widget class="QWidget" name="widget" native="true">
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="0" column="2">
-       <widget class="QLineEdit" name="line_edit_description"/>
+       <widget class="QLineEdit" name="line_edit_description">
+        <property name="placeholderText">
+         <string>(Optional dataset description or name)</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
@@ -130,6 +134,9 @@
           <bold>false</bold>
          </font>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time stamp of the first measurement value in each A-scan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
@@ -159,6 +166,9 @@
          <font>
           <bold>false</bold>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The time stamp of the last measurement value in each A-scan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -214,33 +224,105 @@
      <property name="title">
       <string>Pre-processing :</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QLabel" name="label_5">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="font">
+           <font>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Subtracts the mean value (DC offset) from each A-scan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>De-trend</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="checkBox_detrend">
+          <property name="maximumSize">
+           <size>
+            <width>15</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Subtracts the mean value (DC offset) from each A-scan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_convert_to_nm">
         <property name="font">
          <font>
           <bold>false</bold>
          </font>
         </property>
-        <property name="text">
-         <string>De-trend</string>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Convert the values found in the file to units of nanometers by multiplying by a scalar conversion factor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="checkBox_detrend">
-        <property name="maximumSize">
-         <size>
-          <width>15</width>
-          <height>16777215</height>
-         </size>
+        <property name="title">
+         <string>Convert to nanometers :</string>
         </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
+        <property name="checkable">
          <bool>true</bool>
         </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_6">
+           <property name="font">
+            <font>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Conversion factor</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_conversion_factor_to_nm">
+           <property name="font">
+            <font>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scalar conversion factor by which all measurments contained in the file will be multiplied to convert to nm.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="decimals">
+            <number>4</number>
+           </property>
+           <property name="minimum">
+            <double>-100000.000000000000000</double>
+           </property>
+           <property name="maximum">
+            <double>100000.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>10.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

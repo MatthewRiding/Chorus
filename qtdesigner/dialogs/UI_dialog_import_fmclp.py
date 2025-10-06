@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'dialog_import_fmclp.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -24,7 +24,7 @@ class Ui_dialog_import_fmclp(object):
     def setupUi(self, dialog_import_fmclp):
         if not dialog_import_fmclp.objectName():
             dialog_import_fmclp.setObjectName(u"dialog_import_fmclp")
-        dialog_import_fmclp.resize(466, 313)
+        dialog_import_fmclp.resize(416, 366)
         self.verticalLayout = QVBoxLayout(dialog_import_fmclp)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.label_tfm_parameters = QLabel(dialog_import_fmclp)
@@ -131,7 +131,9 @@ class Ui_dialog_import_fmclp(object):
         self.groupBox_3.setObjectName(u"groupBox_3")
         self.groupBox_3.setMinimumSize(QSize(0, 0))
         self.groupBox_3.setFont(font1)
-        self.horizontalLayout = QHBoxLayout(self.groupBox_3)
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox_3)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.label_5 = QLabel(self.groupBox_3)
         self.label_5.setObjectName(u"label_5")
@@ -145,6 +147,36 @@ class Ui_dialog_import_fmclp(object):
         self.checkBox_detrend.setChecked(True)
 
         self.horizontalLayout.addWidget(self.checkBox_detrend)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+
+        self.groupBox_convert_to_nm = QGroupBox(self.groupBox_3)
+        self.groupBox_convert_to_nm.setObjectName(u"groupBox_convert_to_nm")
+        self.groupBox_convert_to_nm.setFont(font2)
+        self.groupBox_convert_to_nm.setCheckable(True)
+        self.groupBox_convert_to_nm.setChecked(False)
+        self.horizontalLayout_2 = QHBoxLayout(self.groupBox_convert_to_nm)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.label_6 = QLabel(self.groupBox_convert_to_nm)
+        self.label_6.setObjectName(u"label_6")
+        self.label_6.setFont(font2)
+
+        self.horizontalLayout_2.addWidget(self.label_6)
+
+        self.doubleSpinBox_conversion_factor_to_nm = QDoubleSpinBox(self.groupBox_convert_to_nm)
+        self.doubleSpinBox_conversion_factor_to_nm.setObjectName(u"doubleSpinBox_conversion_factor_to_nm")
+        self.doubleSpinBox_conversion_factor_to_nm.setFont(font2)
+        self.doubleSpinBox_conversion_factor_to_nm.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.doubleSpinBox_conversion_factor_to_nm.setDecimals(4)
+        self.doubleSpinBox_conversion_factor_to_nm.setMinimum(-100000.000000000000000)
+        self.doubleSpinBox_conversion_factor_to_nm.setMaximum(100000.000000000000000)
+        self.doubleSpinBox_conversion_factor_to_nm.setValue(10.000000000000000)
+
+        self.horizontalLayout_2.addWidget(self.doubleSpinBox_conversion_factor_to_nm)
+
+
+        self.verticalLayout_2.addWidget(self.groupBox_convert_to_nm)
 
 
         self.verticalLayout.addWidget(self.groupBox_3)
@@ -170,18 +202,39 @@ class Ui_dialog_import_fmclp(object):
 
     def retranslateUi(self, dialog_import_fmclp):
         dialog_import_fmclp.setWindowTitle(QCoreApplication.translate("dialog_import_fmclp", u"Dialog", None))
-        self.label_tfm_parameters.setText(QCoreApplication.translate("dialog_import_fmclp", u"Load FMC from file :", None))
+        self.label_tfm_parameters.setText(QCoreApplication.translate("dialog_import_fmclp", u"Load 1D periodic full matrix dataset from file :", None))
+        self.line_edit_description.setPlaceholderText(QCoreApplication.translate("dialog_import_fmclp", u"(Optional dataset description or name)", None))
         self.label.setText(QCoreApplication.translate("dialog_import_fmclp", u"Description :", None))
         self.label_2.setText(QCoreApplication.translate("dialog_import_fmclp", u"File path :", None))
         self.lineEdit_file_path.setPlaceholderText(QCoreApplication.translate("dialog_import_fmclp", u"(.mat, .npy, .txt)", None))
         self.push_button_browse_for_file.setText("")
         self.groupBox.setTitle(QCoreApplication.translate("dialog_import_fmclp", u"Time record :", None))
         self.label_3.setText(QCoreApplication.translate("dialog_import_fmclp", u"Min :", None))
+#if QT_CONFIG(tooltip)
+        self.doubleSpinBox_time_min_us.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>The time stamp of the first measurement value in each A-scan.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
         self.doubleSpinBox_time_min_us.setSuffix(QCoreApplication.translate("dialog_import_fmclp", u"\u03bcs", None))
+#if QT_CONFIG(tooltip)
+        self.doubleSpinBox_time_max_us.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>The time stamp of the last measurement value in each A-scan.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
         self.doubleSpinBox_time_max_us.setSuffix(QCoreApplication.translate("dialog_import_fmclp", u"\u03bcs", None))
         self.label_4.setText(QCoreApplication.translate("dialog_import_fmclp", u"Max :", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("dialog_import_fmclp", u"Pre-processing :", None))
+#if QT_CONFIG(tooltip)
+        self.label_5.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>Subtracts the mean value (DC offset) from each A-scan.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
         self.label_5.setText(QCoreApplication.translate("dialog_import_fmclp", u"De-trend", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_detrend.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>Subtracts the mean value (DC offset) from each A-scan.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
         self.checkBox_detrend.setText("")
+#if QT_CONFIG(tooltip)
+        self.groupBox_convert_to_nm.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>Convert the values found in the file to units of nanometers by multiplying by a scalar conversion factor.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
+        self.groupBox_convert_to_nm.setTitle(QCoreApplication.translate("dialog_import_fmclp", u"Convert to nanometers :", None))
+        self.label_6.setText(QCoreApplication.translate("dialog_import_fmclp", u"Conversion factor", None))
+#if QT_CONFIG(tooltip)
+        self.doubleSpinBox_conversion_factor_to_nm.setToolTip(QCoreApplication.translate("dialog_import_fmclp", u"<html><head/><body><p>Scalar conversion factor by which all measurments contained in the file will be multiplied to convert to nm.</p></body></html>", None))
+#endif // QT_CONFIG(tooltip)
     # retranslateUi
 
