@@ -19,7 +19,7 @@ def extract_pcm(displacements_3d_nm, time_vector_us, delay_matrix_s):
     for det_index in range(n_tx):
         for gen_index in range(n_tx):
             # Extract A-scan [i,j]:
-            displacements_a_scan_nm = hilbert(displacements_3d_nm[:, det_index, gen_index])
+            displacements_a_scan_nm = hilbert(displacements_3d_nm[det_index, gen_index, :])
             # Extract delay [i,j]:
             delay_s = delay_matrix_s[det_index, gen_index]
             # Interpolate A-scan at delay time & save into PCM:

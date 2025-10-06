@@ -1,6 +1,6 @@
 import numpy as np
 
-from functions.modconvert2dto3dfullmatrixformats import convert_full_matrix_numpy_2d_to_3d
+from functions.modconvert2dto3dfullmatrixformats import convert_2d_dnplusgt_to_3d_dgt
 
 
 def load_fmclp_from_txt_file(file_path):
@@ -15,8 +15,8 @@ def load_fmclp_from_txt_file(file_path):
     format.
     """
     # Default delimiter (whitespace) and newline (\n) characters, matching the default np.savetxt() function.
-    displacements_fmc_2d_raw = np.loadtxt(file_path)
+    displacements_2d_dnplusgt_raw = np.loadtxt(file_path)
 
     # Convert 2D array FMC format into 3D array format:
-    displacements_3d_dgt_raw = convert_full_matrix_numpy_2d_to_3d(displacements_fmc_2d_raw)
+    displacements_3d_dgt_raw = convert_2d_dnplusgt_to_3d_dgt(displacements_2d_dnplusgt_raw)
     return displacements_3d_dgt_raw

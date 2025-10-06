@@ -2,7 +2,7 @@ from scipy.io import loadmat
 import numpy as np
 
 from functions.modgetvariablekeysfrommatcontentsdict import get_variable_keys_from_mat_contents_dict
-from functions.modconvert2dto3dfullmatrixformats import convert_full_matrix_numpy_2d_to_3d
+from functions.modconvert2dto3dfullmatrixformats import convert_2d_tdnplusg_to_3d_dgt
 
 
 def load_full_matrix_from_mat_file(file_path_mat):
@@ -36,12 +36,10 @@ def load_full_matrix_from_mat_file(file_path_mat):
 
     if np.ndim(displacements_fmc_raw) == 2:
         # Convert 2D array FMC format into 3D array format:
-        displacements_3d_dgt_raw = convert_full_matrix_numpy_2d_to_3d(displacements_fmc_raw)
+        displacements_3d_dgt_raw = convert_2d_tdnplusg_to_3d_dgt(displacements_fmc_raw)
     else:
         # Array is already 3D:
-        # Transpose from MATLAB Fortran-ordered array order to Numpy C-ordered array order:
-        # MATLAB: (n_rows, n_columns, n_pages)
-        # Numpy: (n_pages, n_rows, n_columns)
-        displacements_3d_dgt_raw = np.transpose(displacements_fmc_raw, (2, 0, 1))
+        # Transpose from MATLAB(t,g+1,d+1) = numpy[d,t,g] to desired numpy[d,g,t] format:
+        displacements_3d_dgt_raw = np.transpose(displacements_fmc_raw, (0, 2, 1))
 
     return displacements_3d_dgt_raw

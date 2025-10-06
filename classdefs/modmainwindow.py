@@ -13,7 +13,7 @@ from classdefs.modpcmviewer import PCMViewer
 from classdefs.moddatavolumeviewer import DataVolumeVisWidget
 from classdefs.modfullmatrix import FullMatrixLinearPeriodic
 from classdefs.modisochronmanager import IsochronManager
-from functions.moddetrendfmc3d import detrend_fmc_3d
+from functions.moddetrendfmc3d import detrend_full_matrix_3d_dgt
 from functions.modextractpcm import extract_pcm
 from functions.modgeneratedelaymatrix import generate_delay_matrix
 from corevariables.modfiletypeloading import dict_loading_functions
@@ -46,7 +46,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         height_initial = int(self.screen().size().height() * 0.8)
         width_initial = int(self.screen().size().width() * 0.8)
         self.resize(width_initial, height_initial)
-        # Having set that, set the window to be maxmised:
+        # Having set that, set the window to be maximised:
         self.setWindowState(Qt.WindowMaximized)
 
         # Initialise instance variables with default values:
@@ -54,9 +54,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         self.index_iso_det = 0
         self.time_index = 0
         self.time_iso_t_us = 0
-        self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_nm=np.zeros(shape=(1000, 64, 64)),
+        self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_dgt_nm=np.zeros(shape=(64, 64, 1000)),
                                                     t_min_us=-1, t_max_us=10)
-        self.displacements_3d_displayed_nm = np.zeros(shape=(1000, 64, 64))
+        self.displacements_3d_dgt_displayed_nm = np.zeros(shape=(64, 64, 1000))
         self.selected_tfm_image = None
         self.pixel_selected = False
         self.pixel_coords_tuple_m = None
@@ -254,21 +254,21 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             # Load the raw 3d fmc a-scan data.
             # Use a different loading function depending on the format of the file provided:
             loading_function = dict_loading_functions[file_extension]
-            displacements_3d_raw = loading_function(file_path_mat)
+            displacements_3d_dgt_raw = loading_function(file_path_mat)
 
             # The raw measurements contained in the selected file may require a conversion factor to be transformed into
             # units of nanometres.
             if conversion_factor_to_nm:
-                displacements_3d_nm = conversion_factor_to_nm * displacements_3d_raw
+                displacements_3d_dgt_nm = conversion_factor_to_nm * displacements_3d_dgt_raw
             else:
-                displacements_3d_nm = displacements_3d_raw
+                displacements_3d_dgt_nm = displacements_3d_dgt_raw
 
-            # If requested, de-trend the displacements_3d_nm and overwrite:
+            # If requested, de-trend the displacements_3d_dgt_nm and overwrite:
             if detrend_tf:
-                displacements_3d_nm = detrend_fmc_3d(displacements_3d_nm)
+                displacements_3d_dgt_nm = detrend_full_matrix_3d_dgt(displacements_3d_dgt_nm)
 
             # Create a new instance of the FullMatrixLinearPeriodic class:
-            self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_nm, t_min_us, t_max_us)
+            self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_dgt_nm, t_min_us, t_max_us)
 
             # Update everything to reflect the new fmclp data set:
             self.macro_new_fmclp_dataset()
@@ -280,8 +280,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_add_tfm_image.setEnabled(True)
 
     def macro_new_fmclp_dataset(self):
-        """Update everything to reflect the new fmclp data set:"""
-        self.displacements_3d_displayed_nm = self.full_matrix.displacements_3d_nm
+        """Update everything to reflect the new 1D periodic full matrix data set:"""
+        self.displacements_3d_dgt_displayed_nm = self.full_matrix.displacements_3d_dgt_nm
 
         # Update plot axes based on the new number of array elements and time vector:
         self.b_scan_view_widget_iso_det.update_axes(self.full_matrix.n_elements,
@@ -335,7 +335,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def update_iso_det_plot(self):
         # Update the displacement data used in the iso-det B-scan colormap:
-        displacements_b_scan_iso_det_nm = self.displacements_3d_displayed_nm[:, self.index_iso_det, :]
+        displacements_b_scan_iso_det_nm = self.displacements_3d_dgt_displayed_nm[self.index_iso_det, :, :].T
         self.b_scan_view_widget_iso_det.update_b_scan_display(displacements_b_scan_iso_det_nm)
         # If a pixel is selected, update the delays shown:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
@@ -344,7 +344,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def update_iso_gen_plot(self):
         # Update the displacement data used in the iso-gen B-scan colormap:
-        displacements_b_scan_iso_gen_nm = self.displacements_3d_displayed_nm[:, :, self.index_iso_gen]
+        displacements_b_scan_iso_gen_nm = self.displacements_3d_dgt_displayed_nm[:, self.index_iso_gen, :].T
         self.b_scan_view_widget_iso_gen.update_b_scan_display(displacements_b_scan_iso_gen_nm)
         # If a pixel is selected, update the delays shown:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
@@ -353,7 +353,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def update_iso_time_plot(self):
         # Update the displacement data used in the iso-time colormap:
-        displacements_iso_time_slice_nm = self.displacements_3d_displayed_nm[self.time_index, :, :]
+        displacements_iso_time_slice_nm = self.displacements_3d_dgt_displayed_nm[:, :, self.time_index]
         self.iso_time_plot_widget.update_iso_time_slice_display(displacements_iso_time_slice_nm)
         # If a pixel is selected, update the highlighted nearest A-scans:
         if self.selected_tfm_image and self.selected_tfm_image.complete and self.pixel_selected:
@@ -456,13 +456,13 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def set_colormap_limits_to_displacement_max_abs(self):
         # Set the colormap limits to be + and - the maximum of the absolute values of displacement in the dataset:
-        displacement_max_abs_nm = np.max(np.abs(self.displacements_3d_displayed_nm))
+        displacement_max_abs_nm = np.max(np.abs(self.displacements_3d_dgt_displayed_nm))
 
         self.set_colormap_u_min_for_all_images(- displacement_max_abs_nm)
         self.set_colormap_u_max_for_all_widgets(displacement_max_abs_nm)
 
-        # Display the new colormap max abs displacement value in the DoubleSpinBox, muting its signals to prevent
-        # triggering connected slots:
+        # Display the new colormap max abs displacement value in the DoubleSpinBox in units of picometres, muting its
+        # signals to prevent triggering connected slots:
         self.doubleSpinBox_colormap_max_abs_pm.blockSignals(True)
         self.doubleSpinBox_colormap_max_abs_pm.setValue(displacement_max_abs_nm * 1000)
         self.doubleSpinBox_colormap_max_abs_pm.blockSignals(False)
@@ -530,11 +530,11 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def worker_result_detected(self, data_tuple):
         # A worker has transmitted the 'result' signal.  The data_tuple contains two elements:
-        worker_id, summed_displacement_image_complex_nm, fmc_3d_filtered = data_tuple
+        worker_id, summed_displacement_image_complex_nm, displacements_3d_dgt_filtered_nm = data_tuple
 
         # Pin the returned complex image & filtered FMC to the associated ListedTFMImage instance:
         self.list_model_tfm_images.dict_listed_images[worker_id].new_image_complex(summed_displacement_image_complex_nm)
-        self.list_model_tfm_images.dict_listed_images[worker_id].fmc_3d_filtered = fmc_3d_filtered
+        self.list_model_tfm_images.dict_listed_images[worker_id].displacements_3d_dgt_filtered_nm = displacements_3d_dgt_filtered_nm
 
     def worker_finished_detected(self, worker_id):
         # A worker has transmitted the 'finished' signal.
@@ -579,13 +579,13 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # If the selected TFM image used filtering, display the filtered FMC on the B-scan and iso-time widgets:
         if self.selected_tfm_image.tfm_constructor.filter_spec:
-            self.macro_swap_displayed_fmc(self.selected_tfm_image.fmc_3d_filtered)
+            self.macro_swap_displayed_fmc(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
             # Enable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(True)
         else:
             # The selected TFM image did not use filtering.
             # Display the original, unfiltered FMC:
-            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_nm)
+            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_dgt_nm)
             # Disable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(False)
 
@@ -611,10 +611,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Disable the delete tfm image button:
         self.pushButton_delete_tfm_image.setEnabled(False)
 
-    def macro_swap_displayed_fmc(self, fmc_3d):
+    def macro_swap_displayed_fmc(self, displacements_3d_dgt_nm):
         # Swap the c_data on the B-scan widgets and iso-time widgets:
         # Update the fmc used for display:
-        self.displacements_3d_displayed_nm = fmc_3d
+        self.displacements_3d_dgt_displayed_nm = displacements_3d_dgt_nm
         # Update the c_data on the B-scan plots and iso-time plot:
         self.update_iso_det_plot()
         self.b_scan_view_widget_iso_det.blit_manager.blit_all_animated_artists()
@@ -626,10 +626,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
     def button_display_unfiltered_toggled(self, checked):
         if checked:
             # Display the unfiltered FMC:
-            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_nm)
+            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_dgt_nm)
         else:
             # Display the filtered FMC:
-            self.macro_swap_displayed_fmc(self.selected_tfm_image.fmc_3d_filtered)
+            self.macro_swap_displayed_fmc(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
 
     def enable_interactive_widgets_b_scans_and_iso_t(self):
         self.slider_det_index.setEnabled(True)
@@ -742,7 +742,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def update_pcm_viewer_data(self):
         # Extract the pixel contributions matrix:
-        pcm_complex_nm = extract_pcm(self.displacements_3d_displayed_nm, self.full_matrix.time_vector_us,
+        pcm_complex_nm = extract_pcm(self.displacements_3d_dgt_displayed_nm, self.full_matrix.time_vector_us,
                                      self.delay_matrix_s)
         # Update all data in the pcm viewer window:
         self.pcm_viewer_widget.macro_new_pixel_clicked(pcm_complex_nm,

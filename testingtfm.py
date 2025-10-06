@@ -4,7 +4,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from functions.modcomputetfm import compute_tfm
 from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
-from functions.moddetrendfmc3d import detrend_fmc_3d
+from functions.moddetrendfmc3d import detrend_full_matrix_3d_dgt
 from classdefs.modtfmparams import TFMConstructor
 from modfakesignal import FakeSignal
 
@@ -29,7 +29,7 @@ t_max_us = 19
 fmc_3d = load_full_matrix_from_mat_file(mat_file_path)
 
 # De-trend:
-fmc_3d_detrend = detrend_fmc_3d(fmc_3d)
+fmc_3d_detrend = detrend_full_matrix_3d_dgt(fmc_3d)
 
 # Infer n_samples:
 n_samples = np.shape(fmc_3d_detrend)[0]

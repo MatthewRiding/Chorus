@@ -4,7 +4,7 @@ from scipy.signal import hilbert
 from functions.modbuildtfmgrid import build_tfm_grid
 from corevariables.modwavesets import dict_wave_sets
 from functions.modbuildxelements import build_x_elements_m
-from functions.modfilterfmc3dbutter import filter_fmc3d_butter
+from functions.modfilterfmc3dbutter import filter_full_matrix_3d_dgt_butter
 from corevariables.modmaskbehaviours import dict_mask_behaviours
 from functions.modcreatemasks import create_tfm_masks
 
@@ -61,9 +61,9 @@ def compute_tfm(worker_id, fmc_3d, tfm_constructor, time_vector_us, signal_progr
     if tfm_constructor.filter_tf:
         signal_progress.emit((worker_id, ' Filtering...'))
 
-        fmc_3d_filtered = filter_fmc3d_butter(fmc_3d, frequency_sampling_hertz, tfm_params.butter_order,
-                                              band_min_MHz=tfm_params.band_min_MHz,
-                                              band_max_MHz=tfm_params.band_max_MHz)
+        fmc_3d_filtered = filter_full_matrix_3d_dgt_butter(fmc_3d, frequency_sampling_hertz, tfm_params.butter_order,
+                                                           band_min_MHz=tfm_params.band_min_MHz,
+                                                           band_max_MHz=tfm_params.band_max_MHz)
 
         # Use the analytic filtered fmc_3d in the subsequent calculations:
         fmc_3d_processed = hilbert(fmc_3d_filtered, axis=0)

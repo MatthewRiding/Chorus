@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
-from functions.moddetrendfmc3d import detrend_fmc_3d
+from functions.moddetrendfmc3d import detrend_full_matrix_3d_dgt
 from functions.modfilterfmc3dbutterOLD import filter_fmc3d_butter_OLD
-from functions.modfilterfmc3dbutter import filter_fmc3d_butter
+from functions.modfilterfmc3dbutter import filter_full_matrix_3d_dgt_butter
 
 # User inputs:
 mat_file_path = r"C:\Users\mattr\OneDrive - University of Strathclyde\Research project work\LU for fusion\Experimental data\2024_07_25_Matt_DEMO_monoblock\Side side no holes\scan 1 101 el 256av 22mm ap\fmc_compatible.mat"
@@ -29,13 +29,13 @@ period_sampling_us = time_vector_us[1] - time_vector_us[0]
 frequency_sampling_hertz = 1 / (period_sampling_us * 10**-6)
 
 # De-trend:
-fmc_3d_detrend = detrend_fmc_3d(fmc_3d)
+fmc_3d_detrend = detrend_full_matrix_3d_dgt(fmc_3d)
 
 # Create filtered versions:
 fmc_3d_filt_OLD = filter_fmc3d_butter_OLD(fmc_3d_detrend, frequency_sampling_hertz,
                                           butter_order, band_min_MHz, band_max_MHz)
-fmc_3d_filfilt = filter_fmc3d_butter(fmc_3d_detrend, frequency_sampling_hertz,
-                                     butter_order, band_min_MHz, band_max_MHz)
+fmc_3d_filfilt = filter_full_matrix_3d_dgt_butter(fmc_3d_detrend, frequency_sampling_hertz,
+                                                  butter_order, band_min_MHz, band_max_MHz)
 
 # Plot:
 fig, ax_1 = plt.subplots(figsize=(10, 5))
