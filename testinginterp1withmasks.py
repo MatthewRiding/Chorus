@@ -2,13 +2,13 @@ import numpy as np
 from scipy.signal import hilbert
 import matplotlib.pyplot as plt
 
-from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
+from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
 
 
 mat_file_path = r"C:\Users\mattr\OneDrive - University of Strathclyde\Research project work\LU for fusion\Experimental data\2022_10_05_notched_tungsten_1D_LIPA\2022_10_05_Notched_Tungsten_1D_LIPA_v7.mat"
 
 # Import FMC from mat file:
-fmc_3d = load_fmclp_from_mat_file(mat_file_path)
+fmc_3d = load_full_matrix_from_mat_file(mat_file_path)
 
 # Extract one A-scan:
 det_index = 45

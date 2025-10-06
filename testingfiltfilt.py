@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
+from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
 from functions.moddetrendfmc3d import detrend_fmc_3d
 from functions.modfilterfmc3dbutterOLD import filter_fmc3d_butter_OLD
 from functions.modfilterfmc3dbutter import filter_fmc3d_butter
@@ -16,7 +16,7 @@ band_min_MHz = 4
 band_max_MHz = 10
 
 # Import FMC from mat file:
-fmc_3d = load_fmclp_from_mat_file(mat_file_path)
+fmc_3d = load_full_matrix_from_mat_file(mat_file_path)
 
 # Measure size parameters:
 n_samples = np.shape(fmc_3d)[0]

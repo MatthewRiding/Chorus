@@ -4,7 +4,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import colorcet as cc
 
 from functions.modcomputetfmcommonsource import compute_tfm_common_source
-from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
+from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
 from functions.moddetrendfmc3d import detrend_fmc_3d
 from classdefs.modtfmparams import TFMConstructor
 from modfakesignal import FakeSignal
@@ -30,7 +30,7 @@ t_min_us = -1
 t_max_us = 19
 
 # Import FMC from mat file:
-fmc_3d = load_fmclp_from_mat_file(mat_file_path)
+fmc_3d = load_full_matrix_from_mat_file(mat_file_path)
 
 # De-trend:
 fmc_3d_detrend = detrend_fmc_3d(fmc_3d)

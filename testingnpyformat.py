@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from functions.modloadfmclpfrommatfile import load_fmclp_from_mat_file
+from functions.modloadfullmatrixfrommatfile import load_full_matrix_from_mat_file
 
 
 # Import a full matrix from a .mat file:
 mat_file_path = r"C:\Users\mattr\OneDrive - University of Strathclyde\General\00_Experimental Data\2025_02_05_Matt_SDH_polarity_Al_FMC\Scan 2 long\FMC_v7.mat"
-fmc_3d_mat = load_fmclp_from_mat_file(mat_file_path)
+fmc_3d_mat = load_full_matrix_from_mat_file(mat_file_path)
 
 # The format of the 3d numpy array 'fmc_3d' is such that a given A-scan can be accessed by:
 # a_scan_gd = fmc_3d[:, det_index, gen_index]
