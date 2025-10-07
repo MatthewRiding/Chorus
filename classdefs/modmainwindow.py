@@ -281,9 +281,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def macro_new_fmclp_dataset(self):
         """Update everything to reflect the new 1D periodic full matrix data set:"""
+        # Set the new, unfiltered displacements as the 'displayed' displacements:
         self.displacements_3d_dgt_displayed_nm = self.full_matrix.displacements_3d_dgt_nm
 
-        # Update plot axes based on the new number of array elements and time vector:
+        # Update the axes of the plots based on the new number of array elements and time vector:
         self.b_scan_view_widget_iso_det.update_axes(self.full_matrix.n_elements,
                                                     self.full_matrix.t_min_us, self.full_matrix.t_max_us)
         self.b_scan_view_widget_iso_gen.update_axes(self.full_matrix.n_elements,
@@ -334,7 +335,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         return provided, description, file_path, file_extension, t_min, t_max, detrend_tf, conversion_factor_to_nm
 
     def update_iso_det_plot(self):
-        # Update the displacement data used in the iso-det B-scan colormap:
+        """Update the displacement data used in the iso-det B-scan colormap."""
+        # Slice the full matrix in 3D numpy[d,g,t] format to extract an iso-detection index slice.
+        # This first involves indexing with [d,:,:] to return a 2D ndarray where each row is an A-scan and column index
+        # is g.  We want to plot this in seismic-style axes where the time axis is vertical on the screen, so transpose:
         displacements_b_scan_iso_det_nm = self.displacements_3d_dgt_displayed_nm[self.index_iso_det, :, :].T
         self.b_scan_view_widget_iso_det.update_b_scan_display(displacements_b_scan_iso_det_nm)
         # If a pixel is selected, update the delays shown:
@@ -343,7 +347,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             self.b_scan_view_widget_iso_det.update_delays(delay_vector_iso_det)
 
     def update_iso_gen_plot(self):
-        # Update the displacement data used in the iso-gen B-scan colormap:
+        """Update the displacement data used in the iso-gen B-scan colormap."""
+        # Slice the full matrix in 3D numpy[d,g,t] format to extract an iso-generation index slice.
+        # This first involves indexing with [:,g,:] to return a 2D ndarray where each row is an A-scan and column index
+        # is d.  We want to plot this in seismic-style axes where the time axis is vertical on the screen, so transpose:
         displacements_b_scan_iso_gen_nm = self.displacements_3d_dgt_displayed_nm[:, self.index_iso_gen, :].T
         self.b_scan_view_widget_iso_gen.update_b_scan_display(displacements_b_scan_iso_gen_nm)
         # If a pixel is selected, update the delays shown:
@@ -352,7 +359,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             self.b_scan_view_widget_iso_gen.update_delays(delay_vector_iso_gen)
 
     def update_iso_time_plot(self):
-        # Update the displacement data used in the iso-time colormap:
+        """Update the displacement data used in the iso-time colormap."""
+        # Slice the full matrix in 3D numpy[d,g,t] format to extract an iso-time slice.
+        # This requires indexing with [:,:,t] to return a 2D ndarray where row index is g and column index is d.
+        # This is the arrangement we want to plot, so no further transposition is required.
         displacements_iso_time_slice_nm = self.displacements_3d_dgt_displayed_nm[:, :, self.time_index]
         self.iso_time_plot_widget.update_iso_time_slice_display(displacements_iso_time_slice_nm)
         # If a pixel is selected, update the highlighted nearest A-scans:
