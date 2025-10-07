@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.signal import hilbert
 
+from timeit import default_timer as timer
+
 
 def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, worker_id=None):
     """
@@ -29,6 +31,9 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
         The delay-and-sum image.  The complex form is returned for optional envelope processing down-stream.
         The 3d array of filtered displacements is also returned for reference.
     """
+
+    # Start timer:
+    time_start_timer = timer()
 
     if signal_progress:
         # Emit the progress signal with the string 'Initialising...' to tell the user that
@@ -121,6 +126,12 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
                 displacements_sampled_complex_processed_nm, fill_value=0)
 
     # Main loop over A-scans complete.  Complex summed displacement image created.
+
+    # End timer:
+    time_end_timer = timer()
+
+    # Print run time:
+    print(f'TFM run time: {time_end_timer - time_start_timer:.3f} seconds.')
 
     # Return the summed displacement image in units of complex nanometres back to the script calling this function.
     return summed_displacement_image_complex_nm, displacements_fmc_3d_filtered_nm
