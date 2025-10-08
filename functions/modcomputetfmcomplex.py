@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.signal import hilbert
-
 from timeit import default_timer as timer
 
 
@@ -23,15 +22,14 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
         application.  An instance of any class that supports '.emit()' can be passed for use outside a GUI framework.
     :param worker_id: str, optional
         A unique uuid for this TFM calculation, used to identify progress signals sent back to the Chorus
-        GUI thread during parallel processing.  Can be replaced
+        GUI thread during parallel processing.
 
     Returns:
     -------
-    :return: (summed_displacement_image_complex_nm: ndarray of complex128, displacements_3d_filtered: ndarray)
+    :return: (summed_displacement_image_complex_nm: ndarray of complex128, displacements_3d_dgt_filtered_nm: ndarray)
         The delay-and-sum image.  The complex form is returned for optional envelope processing down-stream.
         The 3d array of filtered displacements is also returned for reference.
     """
-
     # Start timer:
     time_start_timer = timer()
 
@@ -54,17 +52,17 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
         if signal_progress:
             signal_progress.emit((worker_id, ' Filtering...'))
 
-        displacements_fmc_3d_filtered_nm = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
+        displacements_3d_dgt_filtered_nm = tfm_constructor.filter_spec.apply_to_fmc(full_matrix)
 
         # Use the analytic filtered fmc_3d in the subsequent calculations:
-        displacements_fmc_3d_processed_nm = hilbert(displacements_fmc_3d_filtered_nm, axis=0)
+        displacements_fmc_3d_processed_nm = hilbert(displacements_3d_dgt_filtered_nm)
     else:
         # No filtering: Use the analytic fmc_3d in the subsequent calculations:
-        displacements_fmc_3d_processed_nm = hilbert(full_matrix.displacements_3d_nm, axis=0)
+        displacements_fmc_3d_processed_nm = hilbert(full_matrix.displacements_3d_dgt_nm)
 
         # This function (compute_tfm) returns the filtered fmc_3d back to the caller for display in B-scan & fmc plots.
-        # When not filtering, we want to return the 'displacements_fmc_3d_filtered_nm' variable as 'None':
-        displacements_fmc_3d_filtered_nm = None
+        # When not filtering, we want to return the 'displacements_3d_dgt_filtered_nm' variable as 'None':
+        displacements_3d_dgt_filtered_nm = None
 
     # Main imaging algorithm loop:
 
@@ -89,7 +87,7 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
 
             # Submit the array of total travel times as interpolation query points for the A-scan associated with
             # this combination of gen_index and det_index:
-            a_scan_displacements_analytic_nm = displacements_fmc_3d_processed_nm[:, det_index, gen_index]
+            a_scan_displacements_analytic_nm = displacements_fmc_3d_processed_nm[det_index, gen_index, :]
             displacements_sampled_complex_nm = np.interp(delays_for_this_a_scan_s,
                                                          (full_matrix.time_vector_us * 10 ** -6),
                                                          a_scan_displacements_analytic_nm, left=0, right=0)
@@ -131,7 +129,7 @@ def compute_tfm_complex(full_matrix, tfm_constructor, signal_progress=None, work
     time_end_timer = timer()
 
     # Print run time:
-    print(f'TFM run time: {time_end_timer - time_start_timer:.3f} seconds.')
+    print(f'TFM run time: {time_end_timer-time_start_timer:.3f} seconds.')
 
     # Return the summed displacement image in units of complex nanometres back to the script calling this function.
-    return summed_displacement_image_complex_nm, displacements_fmc_3d_filtered_nm
+    return summed_displacement_image_complex_nm, displacements_3d_dgt_filtered_nm

@@ -3,16 +3,21 @@ import numpy as np
 
 class FullMatrixLinearPeriodic:
     """
-    A Class to store all data and methods associated with full A-scan matrices captured from linear, periodic
+    A class to store all data and methods associated with full A-scan matrices captured from linear, periodic
     (constant pitch) arrays where both generation and detection are performed across a common set of array points.
     """
-    def __init__(self, displacements_3d_nm, t_min_us, t_max_us):
-        self.displacements_3d_nm = displacements_3d_nm
+    def __init__(self, displacements_3d_dgt_nm, t_min_us, t_max_us):
+        """
+        :param displacements_3d_dgt_nm: A full matrix of displacement measurements in numpy[d,g,t] format.
+        :param t_min_us: The time stamp of the first displacement measurement in each A-scan.
+        :param t_max_us: The time stamp of the last displacement measurement in each A-scan.
+        """
+        self.displacements_3d_dgt_nm = displacements_3d_dgt_nm
         self.t_min_us = t_min_us
         self.t_max_us = t_max_us
 
         # Measure parameters from fmc_3d shape:
-        self.n_samples, self.n_elements, _ = np.shape(self.displacements_3d_nm)
+        self.n_elements, _, self.n_samples = np.shape(self.displacements_3d_dgt_nm)
 
         # Create time vector from limits:
         # Create an evenly spaced time vector using the min and max time values:

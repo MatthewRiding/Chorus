@@ -1,4 +1,4 @@
-from functions.modfilterfmc3dbutter import filter_fmc3d_butter
+from functions.modfilterfmc3dbutter import filter_full_matrix_3d_dgt_butter
 
 
 class FilterSpec:
@@ -9,6 +9,9 @@ class FilterSpec:
         self.band_max_mhz = band_max_mhz
 
     def apply_to_fmc(self, full_matrix):
-        fmc_3d_filtered = filter_fmc3d_butter(full_matrix.displacements_3d_nm, full_matrix.frequency_sampling_hz, self.butter_order,
-                                              band_min_MHz=self.band_min_mhz, band_max_MHz=self.band_max_mhz)
-        return fmc_3d_filtered
+        displacements_3d_dgt_filtered_nm = filter_full_matrix_3d_dgt_butter(full_matrix.displacements_3d_dgt_nm,
+                                                                            full_matrix.frequency_sampling_hz,
+                                                                            self.butter_order,
+                                                                            band_min_MHz=self.band_min_mhz,
+                                                                            band_max_MHz=self.band_max_mhz)
+        return displacements_3d_dgt_filtered_nm

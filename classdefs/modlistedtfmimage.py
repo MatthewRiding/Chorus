@@ -14,7 +14,7 @@ class ListedTFMImage:
         # Make space for instance variables not assigned in constructor:
         self.image_complex_nm = None
         self.max_abs_nm = None
-        self.fmc_3d_filtered = None
+        self.displacements_3d_dgt_filtered_nm = None
         self.progress_string = None
         self.complete = False
         self.x_gen_matrix_m = None
