@@ -13,7 +13,7 @@ from classdefs.modpcmviewer import PCMViewer
 from classdefs.moddatavolumeviewer import DataVolumeVisWidget
 from classdefs.modfullmatrix import FullMatrixLinearPeriodic
 from classdefs.modisochronmanager import IsochronManager
-from functions.moddetrendfmc3d import detrend_full_matrix_3d_dgt
+from functions.moddetrendfullmatrix import detrend_full_matrix_3d_dgt
 from functions.modextractpcm import extract_pcm
 from functions.modgeneratedelaymatrix import generate_delay_matrix
 from corevariables.modfiletypeloading import dict_loading_functions
@@ -97,10 +97,10 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         # Create actions:
         # Action to open a .mat file:
-        action_open = QAction('Open FMC...', parent=self)
-        action_open.setStatusTip('Open a full matrix capture file from one of the accepted formats '
-                                 '(.mat, .npy, .txt).')
-        action_open.triggered.connect(self.open_fmclp)
+        action_open = QAction('Open full matrix...', parent=self)
+        action_open.setStatusTip('Open a file containing a full matrix of displacement measurements in one of the'
+                                 'accepted formats (.npy, .txt, .mat).')
+        action_open.triggered.connect(self.open_full_matrix)
         # Action to toggle the pixel contributions matrix (pcm) viewer window:
         self.action_toggle_pcm_viewer = QAction('Pixel contributions matrix viewer', parent=self)
         self.action_toggle_pcm_viewer.setCheckable(True)
@@ -243,7 +243,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Emit the iso-t time changed signal for any connected widgets:
         self.signal_iso_t_time_changed.emit(time_us)
 
-    def open_fmclp(self):
+    def open_full_matrix(self):
         # Launch a dialog window to ask the user for the file import and display parameters:
         (provided, description, file_path_mat,
          file_extension, t_min_us, t_max_us,
@@ -251,7 +251,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
         if provided:
             # The user has provided file import parameters and wishes to continue with the data import.
-            # Load the raw 3d fmc a-scan data.
+            # Load the raw 3D full matrix of displacement data.
             # Use a different loading function depending on the format of the file provided:
             loading_function = dict_loading_functions[file_extension]
             displacements_3d_dgt_raw = loading_function(file_path_mat)
@@ -270,8 +270,8 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             # Create a new instance of the FullMatrixLinearPeriodic class:
             self.full_matrix = FullMatrixLinearPeriodic(displacements_3d_dgt_nm, t_min_us, t_max_us)
 
-            # Update everything to reflect the new fmclp data set:
-            self.macro_new_fmclp_dataset()
+            # Update everything to reflect the new full matrix data set:
+            self.macro_new_full_matrix()
 
             # Enable interactive widgets associated with the b-scan plots and iso-t plot:
             self.enable_interactive_widgets_b_scans_and_iso_t()
@@ -279,7 +279,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
             # Enable add TFM button:
             self.pushButton_add_tfm_image.setEnabled(True)
 
-    def macro_new_fmclp_dataset(self):
+    def macro_new_full_matrix(self):
         """Update everything to reflect the new 1D periodic full matrix data set:"""
         # Set the new, unfiltered displacements as the 'displayed' displacements:
         self.displacements_3d_dgt_displayed_nm = self.full_matrix.displacements_3d_dgt_nm
@@ -297,7 +297,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Update and re-set controls (sliders and spin boxes) for time, gen and det indices:
         self.update_and_reset_time_gen_det_controls()
 
-        # Visualise the FMC on the plots:
+        # Visualise the full matrix of displacements on the plots:
         # Use min and max to set colormaps:
         self.set_colormap_limits_to_displacement_max_abs()
         # Update displayed data:
@@ -542,7 +542,7 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # A worker has transmitted the 'result' signal.  The data_tuple contains two elements:
         worker_id, summed_displacement_image_complex_nm, displacements_3d_dgt_filtered_nm = data_tuple
 
-        # Pin the returned complex image & filtered FMC to the associated ListedTFMImage instance:
+        # Pin the returned complex image & filtered full matrix of displacements to the associated ListedTFMImage instance:
         self.list_model_tfm_images.dict_listed_images[worker_id].new_image_complex(summed_displacement_image_complex_nm)
         self.list_model_tfm_images.dict_listed_images[worker_id].displacements_3d_dgt_filtered_nm = displacements_3d_dgt_filtered_nm
 
@@ -587,15 +587,15 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Prompt the tfm image widget to update:
         self.tfm_image_widget_2D.new_listed_tfm_image(self.selected_tfm_image)
 
-        # If the selected TFM image used filtering, display the filtered FMC on the B-scan and iso-time widgets:
+        # If the selected TFM image used filtering, display the filtered displacements on the B-scan and iso-time widgets:
         if self.selected_tfm_image.tfm_constructor.filter_spec:
-            self.macro_swap_displayed_fmc(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
+            self.macro_swap_displayed_displacements(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
             # Enable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(True)
         else:
             # The selected TFM image did not use filtering.
-            # Display the original, unfiltered FMC:
-            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_dgt_nm)
+            # Display the original, unfiltered displacements:
+            self.macro_swap_displayed_displacements(self.full_matrix.displacements_3d_dgt_nm)
             # Disable the 'display unfiltered' button:
             self.pushButton_display_unfiltered.setEnabled(False)
 
@@ -621,9 +621,9 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
         # Disable the delete tfm image button:
         self.pushButton_delete_tfm_image.setEnabled(False)
 
-    def macro_swap_displayed_fmc(self, displacements_3d_dgt_nm):
+    def macro_swap_displayed_displacements(self, displacements_3d_dgt_nm):
         # Swap the c_data on the B-scan widgets and iso-time widgets:
-        # Update the fmc used for display:
+        # Update the displacements used for display:
         self.displacements_3d_dgt_displayed_nm = displacements_3d_dgt_nm
         # Update the c_data on the B-scan plots and iso-time plot:
         self.update_iso_det_plot()
@@ -635,11 +635,11 @@ class ChorusMainWindow(QMainWindow, Ui_MainWindow):
 
     def button_display_unfiltered_toggled(self, checked):
         if checked:
-            # Display the unfiltered FMC:
-            self.macro_swap_displayed_fmc(self.full_matrix.displacements_3d_dgt_nm)
+            # Display the unfiltered displacements:
+            self.macro_swap_displayed_displacements(self.full_matrix.displacements_3d_dgt_nm)
         else:
-            # Display the filtered FMC:
-            self.macro_swap_displayed_fmc(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
+            # Display the filtered displacements:
+            self.macro_swap_displayed_displacements(self.selected_tfm_image.displacements_3d_dgt_filtered_nm)
 
     def enable_interactive_widgets_b_scans_and_iso_t(self):
         self.slider_det_index.setEnabled(True)
