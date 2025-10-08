@@ -4,7 +4,7 @@ import numpy as np
 # Create some mock A-scans, each one just containing repeats of its generation index:
 # For example, the first A-scan will be '0,0,0,0,0,0,...' for n_samples.
 n_elements = 3
-n_samples = 17
+n_samples = 5
 
 n_a_scans = n_elements ** 2
 column = np.arange(0, n_a_scans)
@@ -17,6 +17,7 @@ n_a_scans_measured = shape[0]
 n_samples_measured = shape[1]
 n_elements_measured = int(np.sqrt(n_a_scans))
 
+# Reshape into 3D numpy[d,g,t] format:
 array_3d_dgt = np.reshape(array_2d_dnplusgt, (n_elements_measured, n_elements_measured, n_samples_measured))
 
 # To access an A-scan in the 3D array according to its gen_index and det_index:
@@ -27,5 +28,10 @@ a_scan_gd = array_3d_dgt[:, det_index, gen_index]
 
 # Does an iso time slice look correct?  Generation indices should form rows, detection indices should form columns.
 iso_time_slice = array_3d_dgt[:, :, 0]
+
+# Save in a variety of formats:
+np.save('full_matrix_2D_numpy_dnplusg_t_format', array_2d_dnplusgt)
+np.save('full_matrix_3D_numpy_dgt_format', array_3d_dgt)
+np.savetxt('full_matrix_2D_numpy_dnplusg_t_format.txt', array_2d_dnplusgt)
 
 print('hello')
