@@ -23,7 +23,7 @@ displacement for that pixel.
 ## Installation
 Options:
 1. Fork on GitHub (recommended) and open your fork in a GitHub-connected IDE such as PyCharm.
-2. Download a local copy of the master branch from GitHub as a .zip.
+2. Download a local copy of the `master` branch from GitHub as a .zip.
 
 Make sure you have all Python packages listed in `requirements.txt` installed in your virtual
 environment.
