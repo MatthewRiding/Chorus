@@ -13,8 +13,8 @@ def load_full_matrix_from_mat_file(file_path_mat):
     measurements.
 
     The number of dimensions of the data array contained in the .mat file are measured.  If 2D, automatic re-shaping to
-    3D numpy[d,g,t] format is performed assuming the original MATLAB array had MATLAB(t,dn+g+1) format.  If 3D,
-    this function automatically transposes the array assuming it is in MATLAB(t,g,d) format, to give a numpy ndarray
+    3D numpy[d,g,t] format is performed assuming the original MATLAB array had MATLAB(t+1,dn+g+1) format.  If 3D,
+    this function automatically transposes the array assuming it is in MATLAB(t+1,g+1,d+1) format, to give a numpy ndarray
     in numpy[d,g,t] format.  See the data format guides on the Chorus wiki for more context and descriptions of these
     formats, and the differences between MATLAB (column-major) and Numpy (row-major) arrays.
 
@@ -37,15 +37,15 @@ def load_full_matrix_from_mat_file(file_path_mat):
     # Next, measure the number of dimensions of the numpy ndarray returned by loadmat.
     if np.ndim(displacements_fmc_raw) == 2:
         # The array is 2D.
-        # ASSUMPTION: The original MATLAB array was in MATLAB(t,dn+g+1) format.  Therefore, the imported python ndarray
+        # ASSUMPTION: The original MATLAB array was in MATLAB(t+1,dn+g+1) format.  Therefore, the imported python ndarray
         # is in numpy[t,dn+g] format.
         # The desired format is 3D numpy[d,g,t].  Reshape from 2D numpy[t,dn+g] to 3D numpy[d,g,t]:
         displacements_3d_dgt_raw = reshape_2d_tdnplusg_to_3d_dgt(displacements_fmc_raw)
     else:
         # The array is 3D.
-        # ASSUMPTION: The original MATLAB array was in MATLAB(t,g+t,d+1) format.  Therefore, the imported python ndarray
-        # is in numpy[d,t,g] format.
-        # Transpose from numpy[d,t,g] to desired numpy[d,g,t] format:
-        displacements_3d_dgt_raw = np.transpose(displacements_fmc_raw, (0, 2, 1))
+        # ASSUMPTION: The original MATLAB array was in MATLAB(t+1,g+t,d+1) format.  Therefore, the imported python ndarray
+        # is in numpy[t,g,d] format.
+        # Transpose from numpy[t,g,d] to desired numpy[d,g,t] format:
+        displacements_3d_dgt_raw = np.transpose(displacements_fmc_raw, (2, 1, 0))
 
     return displacements_3d_dgt_raw
