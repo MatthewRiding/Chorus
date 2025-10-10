@@ -37,6 +37,6 @@ The Chorus `MainWindow` should appear as in the screenshot below:
 
 ## Compatible full matrix displacement data file formats
 
-See the relevant pages of the Chorus wiki:
+See the relevant pages of the [Chorus wiki](https://github.com/MatthewRiding/Chorus/wiki):
 - [Array requirements](https://github.com/MatthewRiding/Chorus/wiki/Data-format-requirements:-Array-requirements)
 - [File format requirements](https://github.com/MatthewRiding/Chorus/wiki/Data-format-requirements:-File-formats)
