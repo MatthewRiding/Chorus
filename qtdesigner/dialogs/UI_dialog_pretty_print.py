@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'dialog_pretty_print.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.7.2
+## Created by: Qt User Interface Compiler version 6.9.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -64,7 +64,7 @@ class Ui_dialog_pretty_print(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollAreaWidgetContents = QWidget()
         self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 187, 533))
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 176, 533))
         self.verticalLayout = QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
@@ -101,6 +101,23 @@ class Ui_dialog_pretty_print(object):
 
 
         self.verticalLayout.addLayout(self.horizontalLayout_5)
+
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.label_8 = QLabel(self.scrollAreaWidgetContents)
+        self.label_8.setObjectName(u"label_8")
+        self.label_8.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+
+        self.horizontalLayout_6.addWidget(self.label_8)
+
+        self.lineEdit_cbar_label = QLineEdit(self.scrollAreaWidgetContents)
+        self.lineEdit_cbar_label.setObjectName(u"lineEdit_cbar_label")
+        self.lineEdit_cbar_label.setMaximumSize(QSize(110, 16777215))
+
+        self.horizontalLayout_6.addWidget(self.lineEdit_cbar_label)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_6)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -159,7 +176,7 @@ class Ui_dialog_pretty_print(object):
         self.scrollArea_figure.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 834, 557))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 845, 557))
         self.verticalLayout_4 = QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.widget_size_controller = QWidget(self.scrollAreaWidgetContents_4)
@@ -223,6 +240,7 @@ class Ui_dialog_pretty_print(object):
         self.label_3.setText(QCoreApplication.translate("dialog_pretty_print", u"Parameters :", None))
         self.label.setText(QCoreApplication.translate("dialog_pretty_print", u"Title :", None))
         self.label_7.setText(QCoreApplication.translate("dialog_pretty_print", u"y label :", None))
+        self.label_8.setText(QCoreApplication.translate("dialog_pretty_print", u"C bar label :", None))
         self.label_5.setText(QCoreApplication.translate("dialog_pretty_print", u"Width :", None))
         self.label_6.setText(QCoreApplication.translate("dialog_pretty_print", u"Height :", None))
         self.label_4.setText(QCoreApplication.translate("dialog_pretty_print", u"Save as :", None))

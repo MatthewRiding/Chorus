@@ -57,6 +57,10 @@ class PCMWidget(QWidget):
         self.line_mouse_angle_lower = empty_mouse_angle_line_plot()
         self.line_mouse_angle_upper = empty_mouse_angle_line_plot()
 
+        # Create a text label to show the summed value of the PCM:
+        self.text_sum_value = self.mpl_canvas.ax.text(1, 1.05, '', ha='right',
+                                fontsize=8, transform=self.mpl_canvas.ax.transAxes, color=[1, 1, 1])
+
         # Create the interactive matplotlib toolbar, passing the Mplcanvas as the first parameter, then the parent (
         # self, the QWidget) as the second parameter:
         toolbar = NavigationToolbar(self.mpl_canvas, self)

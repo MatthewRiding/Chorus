@@ -104,6 +104,9 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
         # Call the current set_pcm_data function:
         self.set_pcm_data_function()
 
+        # Update the sum value:
+        self.update_sum_text()
+
     def toggle_crit_lines(self):
         if self.check_box_crit.isChecked():
             # Make the critical angle lines visible:
@@ -189,6 +192,8 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.pcm_displacements_nm = np.imag(self.pcm_complex_nm)
         # Call set data function:
         self.set_pcm_data_function()
+        # Update sum text:
+        self.update_sum_text()
         # Re-draw pcm mpl_canvas:
         self.mpl_widget_pcm.mpl_canvas.draw()
 
@@ -211,6 +216,8 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
             self.pcm_displacements_nm = np.real(self.pcm_complex_nm)
         # Call set data function:
         self.set_pcm_data_function()
+        # Update sum text:
+        self.update_sum_text()
         # Re-draw pcm mpl_canvas:
         self.mpl_widget_pcm.mpl_canvas.draw()
 
@@ -318,3 +325,8 @@ class PCMViewer(QWidget, Ui_PCM_viewer):
                                                 'Displacement (nm)',
                                                 title_string=title_string)
         dialog_pretty_print.exec()
+
+    def update_sum_text(self):
+        # Update the sum value displayed above the top-right of the axes:
+        sum_value_nm = np.sum(self.pcm_displacements_nm)
+        self.mpl_widget_pcm.text_sum_value.set_text(f'Σ={sum_value_nm:.3f} nm')

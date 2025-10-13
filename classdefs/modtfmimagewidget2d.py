@@ -174,7 +174,7 @@ class TFMImageWidget2D(QWidget):
         dialog_pretty_print = DialogPrettyPrint(self, self.mpl_canvas.fig,
                                                 'x (mm)',
                                                 'z (mm)',
-                                                'Intensity (dB)',
+                                                self.image_type.string_colorbar,
                                                 title_string=self.listed_tfm_image.tfm_constructor.image_name_string)
         dialog_pretty_print.exec()
 

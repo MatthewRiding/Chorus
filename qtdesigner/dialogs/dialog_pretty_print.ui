@@ -71,7 +71,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>187</width>
+            <width>176</width>
             <height>533</height>
            </rect>
           </property>
@@ -117,6 +117,30 @@
              </item>
              <item>
               <widget class="QLineEdit" name="lineEdit_y_label">
+               <property name="maximumSize">
+                <size>
+                 <width>110</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>C bar label :</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_cbar_label">
                <property name="maximumSize">
                 <size>
                  <width>110</width>
@@ -205,7 +229,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>834</width>
+          <width>845</width>
           <height>557</height>
          </rect>
         </property>

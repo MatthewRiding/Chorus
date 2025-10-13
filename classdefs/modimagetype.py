@@ -3,8 +3,8 @@ class ImageType:
     Stores all information relating to a particular type of TFM image, such as a normalised image in decibels,
     or an image displaying the real part of the raw summed displacement values.
     """
-    def __init__(self, name_string, conversion_function, string_slider_meaning, cmap, spinbox_min:float=0,
-                 can_be_positive_and_negative=True):
+    def __init__(self, name_string, conversion_function, string_slider_meaning, string_colorbar,
+                 cmap, spinbox_min:float=0, can_be_positive_and_negative=True):
         """
         Constructor for class ImageType.
 
@@ -19,6 +19,7 @@ class ImageType:
         self.name_string = name_string
         self.conversion_function = conversion_function
         self.string_slider_meaning = string_slider_meaning
+        self.string_colorbar = string_colorbar
         self.cmap = cmap
         self.spinbox_min = spinbox_min
         self.can_be_positive_and_negative = can_be_positive_and_negative

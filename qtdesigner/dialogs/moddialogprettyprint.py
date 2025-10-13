@@ -73,6 +73,7 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
         # Transmit provided strings to lineEdits:
         self.lineEdit_title.setText(_title_string)
         self.lineEdit_y_label.setText(y_label_string)
+        self.lineEdit_cbar_label.setText(colorbar_string)
 
         # Wire signals to slots:
         self.pushButton_browse.clicked.connect(self.save_as_button_clicked)
@@ -80,13 +81,18 @@ class DialogPrettyPrint(QDialog, Ui_dialog_pretty_print):
         self.spinBox_height.editingFinished.connect(self.new_size_requested)
         self.lineEdit_title.textEdited.connect(self.title_changed)
         self.lineEdit_y_label.textEdited.connect(self.y_label_changed)
+        self.lineEdit_cbar_label.textEdited.connect(self.c_bar_label_changed)
 
-    def title_changed(self):
-        self.mpl_canvas.ax.set_title(self.lineEdit_title.text())
+    def title_changed(self, text):
+        self.mpl_canvas.ax.set_title(text)
         self.mpl_canvas.draw()
 
-    def y_label_changed(self):
-        self.mpl_canvas.ax.set_ylabel(self.lineEdit_y_label.text())
+    def y_label_changed(self, text):
+        self.mpl_canvas.ax.set_ylabel(text)
+        self.mpl_canvas.draw()
+
+    def c_bar_label_changed(self, text):
+        self.cbar.set_label(text)
         self.mpl_canvas.draw()
 
     def new_size_requested(self):
